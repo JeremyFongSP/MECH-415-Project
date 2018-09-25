@@ -6,9 +6,9 @@ Jeremy Fong San Pin
 Vivek Patel
 *****************************************/
 
-#include "project.h"
+#include <iostream>
+#include <cstdio>
+#include <cmath>
 
-int main(){
-	cout << "\nHello World!";
-	return 0;
-}
+using namespace std;
+
