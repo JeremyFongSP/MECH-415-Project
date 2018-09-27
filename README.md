@@ -4,10 +4,13 @@ Project for MECH 415: 3-DOF Robot
 This project is required to use Microsoft Visual Studio 2013.
 
 ----------------------------------------- For Annie/Vivek -----------------------------------------
+
 Here are some of the terminal commands we went over:
 
 #Regular commands
+
 ls                                          //List files in directory (add -a to see hidden files)
+
 cd [location]                               //Change directory
 mkdir [name]                                //Make directory
 rm [name]                                   //Remove file
