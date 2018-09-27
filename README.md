@@ -18,7 +18,7 @@ touch [name]                                //Make a new file
 
 
 #Git commands
-git status
+git status                                  //Check status: branch, up-to-date, commit status
 git add .                                   //Add files to be committed
 git commit -m "message"                     //Commit changes
 git pull origin master                      //Take files/modifications from Github
