@@ -8,6 +8,7 @@ For Annie/Vivek
 
 Here are some of the terminal commands we went over:
 
+```
 #Regular commands
 ls                                          //List files in directory (add -a to see hidden files)
 cd [location]                               //Change directory
@@ -17,6 +18,7 @@ touch [name]                                //Make a new file
 
 
 #Git commands
+git status
 git add .                                   //Add files to be committed
 git commit -m "message"                     //Commit changes
 git pull origin master                      //Take files/modifications from Github
@@ -26,6 +28,7 @@ git checkout -b [branch-name]               //Change branch (or make one if non-
 git log                                     //Check commits
 git config --global user.name "username"    //Set username
 git config --global user.email "e-mail"     //Set e-mail
+```
 
 ---------------------------------------------------------------------------------------------------
 
