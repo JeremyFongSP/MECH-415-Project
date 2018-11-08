@@ -11,38 +11,40 @@
 using namespace std;
 
 
-void calculate_inputs(const double X[], double t, int order, double U[], int input);
+void calculate_inputs(const double X[], double t, int N, double U[], int M);
 
 // calculates the derivative of the state variables for the project
-void calculate_Xd(const double X[], double t, int order, const double U[], int input, double Xd[]);
+void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[]);
 
 int main()
 {
-	const int order = 2;
+	const int N = 6;
 	double t = 0.0;
-	double x[order + 1];
-	double xd[order + 1];
+	double x[N + 1];
+	double xd[N + 1];
 	double dt = 0.01;
 	double tf = 10.0;
-	const int input = 3;
-	double u[input + 1];
+	const int m = 3;
+	double u[m + 1];
 
 	ofstream fout("question 1.csv");
 
 	// set initial conditions
-	x[1] = 1.0;
-	x[2] = 0.0;
-	x[3] = 0.0;
+	for (int i = 1; i <= N; i++)
+	{
+		if (i <= 3) x[i] = 1.0; // initial angle position for theta 1, 2 and 3
+		else x[i] = 0.0; // initial velocity for theta 1, 2 and 3
+	}
 
-	fout << "Time t" << "," << "theta 1" << "," << "theta 2" << "," << "theta 3";
+	fout << "Time t" << "," << "theta 1" << "," << "theta 2" << "," << "theta 3" << "," << "velocity theta 1" << "," << "velocity theta 2" << "," << "velocity theta 3";
 
 	while (t < tf)
 	{
 		fout << t;
-		for (int i = 1; i <= order; i++) fout << "," << x[i];
-		calculate_inputs(x, t, order, u, input);
-		calculate_Xd(x, t, order, u, input, xd);
-		for (int i = 1; i <= order; i++) x[i] = x[i] + xd[i] * dt;
+		for (int i = 1; i <= N; i++) fout << "," << x[i];
+		calculate_inputs(x, t, N, u, m);
+		calculate_Xd(x, t, N, u, m, xd);
+		for (int i = 1; i <= N; i++) x[i] = x[i] + xd[i] * dt;
 		t = t + dt;
 		if (t<tf) fout << "\n";
 	}
@@ -50,9 +52,9 @@ int main()
 	return 0;
 }
 
-void calculate_inputs(const double X[], double t, int order, double U[], int input)
+void calculate_inputs(const double X[], double t, int N, double U[], int M)
 {
-	double x[3], v[3]; // state variables
+	double x[3 + 1], v[3 + 1]; // state variables
 
 	// defining the parameters & input
 	double m[3] = { 1.0, 1.0, 1.0 }; // mass matrix of all the arms
@@ -67,31 +69,31 @@ void calculate_inputs(const double X[], double t, int order, double U[], int inp
 	for (int i = 1; i <= 3; i++) U[i] = F[i];
 }
 
-void calculate_Xd(const double X[], double t, int order, const double U[], int input, double Xd[])
+void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[])
 {
-	double M[3][3]; // inertia matrix
-	double G[3]; // gravity vector matrix
-	double C[3]; // corriolis effect matrix
-	double F[3];
+	double Ma[3 + 1][3 + 1]; // inertia matrix
+	double G[3 + 1]; // gravity vector matrix
+	double C[3 + 1]; // corriolis effect matrix
+	double F[3 + 1];
 
-	double x[3], v[3]; // state variables
+	double x[3 + 1], v[3 + 1]; // state variables
 
-	double dx[3], dv[3]; // derivatives
+	double dx[3 + 1], dv[3 + 1]; // derivatives
 
 	// defining the parameters
-	double m[3] = { 1.0, 1.0, 1.0 }; // mass matrix of all the arms
+	double m[3] = { 10.0, 10.0, 10.0 }; // mass matrix of all the arms
 	double l[3] = { 2.0, 2.0, 2.0 }; // length matrix of the arms 
-	double R = 0.0;
+	double R = 4.0;
 	double g = 9.81;
-	double det;
-	double Minv[3][3] = { 0.0 };
+	double det =  0.0;
+	double Minv[3 + 1][3 + 1] = { 0.0 };
 
-	M[1][1] = (m[1] * R * R)/2 + (m[2] * l[2] * l[2] * cos(x[2]) * cos(x[2]))/3 + (m[3] * l[3] * l[3] * cos(x[2] + x[3]) * cos(x[2] + x[3]))/3 + (m[3] * l[2] * l[2] * cos(x[2]) * cos(x[2])) + (m[3] * l[2] * l[3] * cos(x[2] + x[3])*cos(x[2]));
-	M[2][2] = (m[2] * l[2] * l[2])/3 + (m[3] * l[3] * l[3])/3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]));
-	M[2][3] = (m[3] * l[3] * l[3])/3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]))/3;
-	M[3][3] = (m[3] * l[3] * l[3])/3;
-	M[1][2] = M[1][3] = M[2][1] = M[3][1] = 0;
-	M[3][2] = M[2][3];
+	Ma[1][1] = (m[1] * R * R)/2 + (m[2] * l[2] * l[2] * cos(x[2]) * cos(x[2]))/3 + (m[3] * l[3] * l[3] * cos(x[2] + x[3]) * cos(x[2] + x[3]))/3 + (m[3] * l[2] * l[2] * cos(x[2]) * cos(x[2])) + (m[3] * l[2] * l[3] * cos(x[2] + x[3])*cos(x[2]));
+	Ma[2][2] = (m[2] * l[2] * l[2])/3 + (m[3] * l[3] * l[3])/3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]));
+	Ma[2][3] = (m[3] * l[3] * l[3])/3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]))/3;
+	Ma[3][3] = (m[3] * l[3] * l[3])/3;
+	Ma[1][2] = Ma[1][3] = Ma[2][1] = Ma[3][1] = 0;
+	Ma[3][2] = Ma[2][3];
 
 	G[1] = 0;
 	G[2] = (m[2] * g * l[2] * cos(x[2]))/2 + (m[3] * g * l[3] * cos(x[2] + x[3]))/2 + (m[3] * g * l[2] * cos(x[2]));
@@ -103,14 +105,21 @@ void calculate_Xd(const double X[], double t, int order, const double U[], int i
 
 	for (int i = 1; i <= 3; i++)
 	{
-		det = M[1][i] * (M[1][(i + 1) % 3] * M[2][(i + 2) % 3] - M[1][(i + 2) % 3] * M[2][(i + 1) % 3]);
+		if (i == 2)
+		{
+			det -= Ma[1][i] * (Ma[1][(i + 1) % 3] * Ma[2][(i + 2) % 3] - Ma[1][(i + 2) % 3] * Ma[2][(i + 1) % 3]);
+		}
+		else
+		{
+			det += Ma[1][i] * (Ma[1][(i + 1) % 3] * Ma[2][(i + 2) % 3] - Ma[1][(i + 2) % 3] * Ma[2][(i + 1) % 3]);
+		}
 	}
 
 	for (int i = 1; i <= 3; i++)
 	{
 		for (int j = 1; j <= 3; j++)
 		{
-			Minv[i][j] = ((M[(j + 1) % 3][(i + 1) % 3] * M[(j + 2) % 3][(i + 2) % 3]) - (M[(j + 1) % 3][(i + 2) % 3] * M[(j + 2) % 3][(i + 1) % 3])) / det;
+			Minv[i][j] = ((Ma[(j + 1) % 3][(i + 1) % 3] * Ma[(j + 2) % 3][(i + 2) % 3]) - (Ma[(j + 1) % 3][(i + 2) % 3] * Ma[(j + 2) % 3][(i + 1) % 3])) / det;
 		}
 	}
 
@@ -136,7 +145,7 @@ void calculate_Xd(const double X[], double t, int order, const double U[], int i
 
 	for (int i = 1; i <= 3; i++)
 	{
-		dv[i] = M[i][1] * (F[1] - C[1] - G[1]) + M[i][2] * (F[2] - C[2] - G[2]) + M[i][3] * (F[3] - C[3] - G[3]);
+		dv[i] = Ma[i][1] * (F[1] - C[1] - G[1]) + Ma[i][2] * (F[2] - C[2] - G[2]) + Ma[i][3] * (F[3] - C[3] - G[3]);
 	}
 
 	// pack the state variables
