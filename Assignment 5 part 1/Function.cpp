@@ -1,13 +1,5 @@
 #include <cmath>   // math functions
-#include <cstdio>  // standard I/O functions
 #include <cstring> // string manipulation functions
-
-#include <iostream>  // console stream I/O
-#include <fstream>   // file stream I/O
-#include <strstream> // string stream I/0
-
-#include <conio.h> // console I/O functions such as getch()
-
 #include "Function.h" // include Functions
 
 void calculate_inputs(const double X[], double t, int N, double U[], int M)
@@ -27,7 +19,7 @@ void calculate_inputs(const double X[], double t, int N, double U[], int M)
 	for (int i = 1; i <= 3; i++) U[i] = F[i];
 }
 
-void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[])
+void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[], double invM[4][4], double c[4])
 {
 	double Ma[3 + 1][3 + 1]; // inertia matrix
 	double G[3 + 1]; // gravity vector matrix
@@ -46,6 +38,7 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	double det = 0.0;
 	double Minv[3 + 1][3 + 1] = { 0.0 };
 
+	// Dynamic model
 	Ma[1][1] = (m[1] * R * R) / 2 + (m[2] * l[2] * l[2] * cos(x[2]) * cos(x[2])) / 3 + (m[3] * l[3] * l[3] * cos(x[2] + x[3]) * cos(x[2] + x[3])) / 3 + (m[3] * l[2] * l[2] * cos(x[2]) * cos(x[2])) + (m[3] * l[2] * l[3] * cos(x[2] + x[3])*cos(x[2]));
 	Ma[2][2] = (m[2] * l[2] * l[2]) / 3 + (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]));
 	Ma[2][3] = (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3])) / 3;
@@ -81,14 +74,26 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 		}
 	}
 
+	// Velocity kinematic
+
+
 	// unpack state variables & inputs
 	for (int i = 1; i <= 3; i++) x[i] = X[i];
 	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
 	for (int i = 1; i <= 3; i++) F[i] = U[i];
 	for (int i = 1; i <= 3; i++) dx[i] = v[i];
-	for (int i = 1; i <= 3; i++) dv[i] = Ma[i][1] * (F[1] - C[1] - G[1]) + Ma[i][2] * (F[2] - C[2] - G[2]) + Ma[i][3] * (F[3] - C[3] - G[3]);
+	//for (int i = 1; i <= 3; i++) dv[i] = Minv[i][1] * (F[1] - C[1] - G[1]) + Minv[i][2] * (F[2] - C[2] - G[2]) + Minv[i][3] * (F[3] - C[3] - G[3]);
+	for (int i = 1; i <= 3; i++) dv[i] = Minv[i][1] * (F[1] - G[1]) + Minv[i][2] * (F[2] - G[2]) + Minv[i][3] * (F[3] - G[3]);
 
 	// pack the state variables
 	for (int i = 1; i <= 3; i++) Xd[i] = dx[i];
 	for (int i = 1; i <= 3; i++) Xd[i + 3] = dv[i];
+	for (int i = 1; i <= 3; i++)
+	{
+		for (int j = 1; j <= 3; j++)
+		{
+			invM[i][j] = Minv[i][j];
+		}
+	}
+	for (int i = 1; i <= 3; i++) c[i] = C[i];
 }
