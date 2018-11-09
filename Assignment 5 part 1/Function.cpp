@@ -10,19 +10,30 @@
 
 #include "Function.h" // include Functions
 
+
+
+
+
 void calculate_inputs(const double X[], double t, int N, double U[], int M)
 {
+	//x[] are relative angles (x[1] = theta1, x[2] = theta2 x[3] = theta3)
+	//v[] are relative velocities 
 	double x[3 + 1], v[3 + 1]; // state variables
 
 	// defining the parameters & input
+
 	double m[3] = { 1.0, 1.0, 1.0 }; // mass matrix of all the arms
 	double l[3] = { 2.0, 2.0, 2.0 }; // length matrix of the arms 
-	double F[3] = { 0.0 }; // force matrix
+	double F[3]; // force matrix
 
 	// unpack state variables & pack inputs
 	for (int i = 1; i <= 3; i++) x[i] = X[i];
 
 	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
+
+	F[1] = 0;		//Leave them separate so we can give them different inputs individually
+	F[2] = 0;
+	F[3] = 0;
 
 	for (int i = 1; i <= 3; i++) U[i] = F[i];
 }
@@ -34,13 +45,15 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	double C[3 + 1]; // corriolis effect matrix
 	double F[3 + 1];
 
+	//x[] are relative angles (x[1] = theta1, x[2] = theta2 x[3] = theta3)
+	//v[] are relative velocities 
 	double x[3 + 1], v[3 + 1]; // state variables
 
 	double dx[3 + 1], dv[3 + 1]; // derivatives
 
 	// defining the parameters
-	double m[3] = { 10.0, 10.0, 10.0 }; // mass matrix of all the arms
-	double l[3] = { 2.0, 2.0, 2.0 }; // length matrix of the arms 
+	double m[3+1] = { 0.0, 10.0, 10.0, 10.0 }; // mass matrix of all the arms
+	double l[3+1] = { 0.0,  2.0, 2.0, 2.0 }; // length matrix of the arms 
 	double R = 4.0;
 	double g = 9.81;
 	double det = 0.0;
@@ -91,4 +104,5 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	// pack the state variables
 	for (int i = 1; i <= 3; i++) Xd[i] = dx[i];
 	for (int i = 1; i <= 3; i++) Xd[i + 3] = dv[i];
+
 }

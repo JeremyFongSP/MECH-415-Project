@@ -32,7 +32,7 @@ int main()
 		else x[i] = 0.0; // initial velocity for theta 1, 2 and 3
 	}
 
-	fout << "Time t" << "," << "theta 1" << "," << "theta 2" << "," << "theta 3" << "," << "velocity theta 1" << "," << "velocity theta 2" << "," << "velocity theta 3";
+	fout << "Time t" << "," << "theta 1" << "," << "theta 2" << "," << "theta 3" << "," << "velocity theta 1" << "," << "velocity theta 2" << "," << "velocity theta 3" << "\n";
 
 	while (t < tf)
 	{
