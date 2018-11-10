@@ -1,5 +1,14 @@
+<<<<<<< HEAD
 ﻿Build started 11/9/2018 7:54:56 PM.
+=======
+<<<<<<< HEAD
+﻿Build started 2018-11-08 10:22:02 PM.
+     1>Project "C:\Users\AF\MECH-415-Project\Assignment 5 part 1\Assignment 5 part 1.vcxproj" on node 2 (Rebuild target(s)).
+=======
+﻿Build started 11/9/2018 9:13:28 AM.
+>>>>>>> 964ad04da1caf920ba58a698abef7f49da0c4be6
      1>Project "C:\Users\Jeremy\Dropbox\School\MECH 415\Project\Assignment 5 part 1\Assignment 5 part 1.vcxproj" on node 2 (Build target(s)).
+>>>>>>> 2e99b779238aac89908c7ad3e216d5185daf74a4
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Function.cpp
          Function.cpp
@@ -11,4 +20,12 @@
 
 Build succeeded.
 
+<<<<<<< HEAD
 Time Elapsed 00:00:00.63
+=======
+<<<<<<< HEAD
+Time Elapsed 00:00:02.19
+=======
+Time Elapsed 00:00:00.76
+>>>>>>> 2e99b779238aac89908c7ad3e216d5185daf74a4
+>>>>>>> 964ad04da1caf920ba58a698abef7f49da0c4be6
