@@ -31,9 +31,9 @@ void calculate_inputs(const double X[], double t, int N, double U[], int M)
 
 	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
 
-	F[1] = 0;		//Leave them separate so we can give them different inputs individually
-	F[2] = 0;
-	F[3] = 0;
+	F[1] = 10;		//Leave them separate so we can give them different inputs individually
+	F[2] = 10;
+	F[3] = 10;
 
 	for (int i = 1; i <= 3; i++) U[i] = F[i];
 }
@@ -100,8 +100,9 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 		cout << "C[" << i << "] = " << C[i] << " ";
 
 	cout << endl << endl;
+	
 	//Compute Mass Matrix Determinant
-	for (int i = 1; i <= 3; i++)
+/*	for (int i = 1; i <= 3; i++)
 	{
 		if (i == 2)
 		{
@@ -112,9 +113,9 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 			det += Ma[1][i] * (Ma[1][(i + 1) % 3] * Ma[2][(i + 2) % 3] - Ma[1][(i + 2) % 3] * Ma[2][(i + 1) % 3]);
 		}
 	}
-
+*/
 	//Compute Inverse Mass Matrix
-	for (int i = 1; i <= 3; i++)
+/*	for (int i = 1; i <= 3; i++)
 	{
 		for (int j = 1; j <= 3; j++)
 		{
@@ -122,9 +123,25 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 		}
 	}
 
+*/
+	det = Ma[0][0] * (Ma[1][1] * Ma[2][2]- Ma[2][1] * Ma[1][2]) - Ma[0][1] * (Ma[1][0] * Ma[2][2] - Ma[1][2] * Ma[2][0]) + Ma[0][2] * (Ma[1][0] * Ma[2][1] - Ma[1][1] * Ma[2][0]);
+	Minv[0][0] = (Ma[1][1] * Ma[2][2] - Ma[2][1] * Ma[1][2]) / det;
+	Minv[0][1] = (Ma[0][2] * Ma[2][1] - Ma[0][1] * Ma[2][2]) / det;
+	Minv[0][2] = (Ma[0][1] * Ma[1][2] - Ma[0][2] * Ma[1][1]) / det;
+	Minv[1][0] = (Ma[1][2] * Ma[2][0] - Ma[1][0] * Ma[2][2]) / det;
+	Minv[1][1] = (Ma[0][0] * Ma[2][2] - Ma[0][2] * Ma[2][0]) / det;
+	Minv[1][2] = (Ma[1][0] * Ma[0][2] - Ma[0][0] * Ma[1][2]) / det;
+	Minv[2][0] = (Ma[1][0] * Ma[2][1] - Ma[2][0] * Ma[1][1]) / det;
+	Minv[2][1] = (Ma[2][0] * Ma[0][1] - Ma[0][0] * Ma[2][1]) / det;
+	Minv[2][2] = (Ma[0][0] * Ma[1][1] - Ma[1][0] * Ma[0][1]) / det;
 
 	for (int i = 1; i <= 3; i++) dx[i] = v[i];
-	for (int i = 1; i <= 3; i++) dv[i] = Ma[i][1] * (F[1] - C[1] - G[1]) + Ma[i][2] * (F[2] - C[2] - G[2]) + Ma[i][3] * (F[3] - C[3] - G[3]);
+	
+//	for (int i = 1; i <= 3; i++) dv[i] = Ma[i][1] * (F[1] - C[1] - G[1]) + Ma[i][2] * (F[2] - C[2] - G[2]) + Ma[i][3] * (F[3] - C[3] - G[3]);
+	//changing sign and Ma to Minv, remove for loop
+	dv[1] = Minv[1][1] * (F[1] + C[1] + G[1]) + Minv[1][2] * (F[2] + C[2] + G[2]) + Minv[1][3] * (F[3] + C[3] + G[3]);
+	dv[2] = Minv[1][2] * (F[1] + C[1] + G[1]) + Minv[2][2] * (F[2] + C[2] + G[2]) + Minv[2][3] * (F[3] + C[3] + G[3]);
+	dv[3] = Minv[1][3] * (F[1] + C[1] + G[1]) + Minv[2][3] * (F[2] + C[2] + G[2]) + Minv[3][3] * (F[3] + C[3] + G[3]);
 
 	// pack the state variables
 	for (int i = 1; i <= 3; i++) Xd[i] = dx[i];
