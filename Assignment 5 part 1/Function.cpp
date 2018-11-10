@@ -9,8 +9,6 @@
 
 using namespace std;
 
-
-
 void calculate_inputs(const double X[], double t, int N, double U[], int M)
 {
 	//x[] are relative angles (x[1] = theta1, x[2] = theta2 x[3] = theta3)
@@ -60,12 +58,14 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	double det = 0.0;
 	double Minv[3 + 1][3 + 1] = { 0.0 };
 
+	// Dynamic model
+
 	//Compute Mass Matrix
 	Ma[1][1] = (m[1] * R * R) / 2 + (m[2] * l[2] * l[2] * cos(x[2]) * cos(x[2])) / 3 + (m[3] * l[3] * l[3] * cos(x[2] + x[3]) * cos(x[2] + x[3])) / 3 + (m[3] * l[2] * l[2] * cos(x[2]) * cos(x[2])) + (m[3] * l[2] * l[3] * cos(x[2] + x[3])*cos(x[2]));
 	Ma[2][2] = (m[2] * l[2] * l[2]) / 3 + (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]));
 	Ma[2][3] = (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3])) / 3;
 	Ma[3][3] = (m[3] * l[3] * l[3]) / 3;
-	Ma[1][2] = Ma[1][3] = Ma[2][1] = Ma[3][1] = 0;
+	Ma[1][2] = Ma[1][3] = Ma[2][1] = Ma[3][1] = 0.0;
 	Ma[3][2] = Ma[2][3];
 
 	cout << "\n";
@@ -77,7 +77,6 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 		}
 		cout << endl;
 	}
-		
 
 	//Compute Gravity Matrix
 	G[1] = 0;
@@ -97,41 +96,39 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 		cout << "C[" << i << "] = " << C[i] << " ";
 
 	cout << endl << endl;
-	
+
 	//Compute Mass Matrix Determinant
-/*	for (int i = 1; i <= 3; i++)
+	for (int i = 1; i <= 3; i++)
 	{
-		if (i == 2)
-		{
-			det -= Ma[1][i] * (Ma[1][(i + 1) % 3] * Ma[2][(i + 2) % 3] - Ma[1][(i + 2) % 3] * Ma[2][(i + 1) % 3]);
-		}
-		else
-		{
-			det += Ma[1][i] * (Ma[1][(i + 1) % 3] * Ma[2][(i + 2) % 3] - Ma[1][(i + 2) % 3] * Ma[2][(i + 1) % 3]);
-		}
+		if (i == 1) det += Ma[1][1] * (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]);
+		if (i == 2) det -= Ma[1][2] * (Ma[2][1] * Ma[3][3] - Ma[3][1] * Ma[2][3]);
+		if (i == 3) det += Ma[1][3] * (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]);
 	}
-*/
+
+	cout << "det = " << det << endl;
+
 	//Compute Inverse Mass Matrix
-/*	for (int i = 1; i <= 3; i++)
+	Minv[1][1] = (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]) / det;
+	Minv[1][2] = (Ma[1][3] * Ma[3][2] - Ma[1][2] * Ma[3][3]) / det;
+	Minv[1][3] = (Ma[1][2] * Ma[2][3] - Ma[1][3] * Ma[2][2]) / det;
+	Minv[2][1] = (Ma[2][3] * Ma[3][1] - Ma[2][1] * Ma[3][3]) / det;
+	Minv[2][2] = (Ma[1][1] * Ma[3][3] - Ma[1][3] * Ma[3][1]) / det;
+	Minv[2][3] = (Ma[2][1] * Ma[1][3] - Ma[1][1] * Ma[2][3]) / det;
+	Minv[3][1] = (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]) / det;
+	Minv[3][2] = (Ma[3][1] * Ma[1][2] - Ma[1][1] * Ma[3][2]) / det;
+	Minv[3][3] = (Ma[1][1] * Ma[2][2] - Ma[2][1] * Ma[1][2]) / det;
+
+	cout << "\n";
+	for (int i = 1; i <= 3; i++)
 	{
 		for (int j = 1; j <= 3; j++)
 		{
-			Minv[i][j] = ((Ma[(j + 1) % 3][(i + 1) % 3] * Ma[(j + 2) % 3][(i + 2) % 3]) - (Ma[(j + 1) % 3][(i + 2) % 3] * Ma[(j + 2) % 3][(i + 1) % 3])) / det;
+			cout << "Minv[" << i << "][" << j << "] = " << Minv[i][j] << " ";
 		}
+		cout << endl;
 	}
 
-*/
-	det = Ma[0][0] * (Ma[1][1] * Ma[2][2]- Ma[2][1] * Ma[1][2]) - Ma[0][1] * (Ma[1][0] * Ma[2][2] - Ma[1][2] * Ma[2][0]) + Ma[0][2] * (Ma[1][0] * Ma[2][1] - Ma[1][1] * Ma[2][0]);
-	Minv[0][0] = (Ma[1][1] * Ma[2][2] - Ma[2][1] * Ma[1][2]) / det;
-	Minv[0][1] = (Ma[0][2] * Ma[2][1] - Ma[0][1] * Ma[2][2]) / det;
-	Minv[0][2] = (Ma[0][1] * Ma[1][2] - Ma[0][2] * Ma[1][1]) / det;
-	Minv[1][0] = (Ma[1][2] * Ma[2][0] - Ma[1][0] * Ma[2][2]) / det;
-	Minv[1][1] = (Ma[0][0] * Ma[2][2] - Ma[0][2] * Ma[2][0]) / det;
-	Minv[1][2] = (Ma[1][0] * Ma[0][2] - Ma[0][0] * Ma[1][2]) / det;
-	Minv[2][0] = (Ma[1][0] * Ma[2][1] - Ma[2][0] * Ma[1][1]) / det;
-	Minv[2][1] = (Ma[2][0] * Ma[0][1] - Ma[0][0] * Ma[2][1]) / det;
-	Minv[2][2] = (Ma[0][0] * Ma[1][1] - Ma[1][0] * Ma[0][1]) / det;
-
+	// Velocity kinematic
 	for (int i = 1; i <= 3; i++) dx[i] = v[i];
 	
 //	for (int i = 1; i <= 3; i++) dv[i] = Ma[i][1] * (F[1] - C[1] - G[1]) + Ma[i][2] * (F[2] - C[2] - G[2]) + Ma[i][3] * (F[3] - C[3] - G[3]);
@@ -146,14 +143,4 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	// pack the state variables
 	for (int i = 1; i <= 3; i++) Xd[i] = dx[i];
 	for (int i = 1; i <= 3; i++) Xd[i + 3] = dv[i];
-/*
-	for (int i = 1; i <= 3; i++)
-	{
-		for (int j = 1; j <= 3; j++)
-		{
-			invM[i][j] = Minv[i][j];
-		}
-	}
-	for (int i = 1; i <= 3; i++) c[i] = C[i];
-*/
 }
