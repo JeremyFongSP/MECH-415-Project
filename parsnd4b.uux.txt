@@ -1,0 +1,24 @@
+﻿
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'origin/master'.
+#
+# Changes to be committed:
+#	modified:   Assignment 5 part 1.sdf
+#	modified:   Assignment 5 part 1.v12.suo
+#	modified:   Assignment 5.cpp
+#	modified:   Debug/Assignme.EDF7CF52.tlog/CL.read.1.tlog
+#	modified:   Debug/Assignme.EDF7CF52.tlog/link.read.1.tlog
+#	modified:   Debug/Assignment 5 part 1.exe
+#	modified:   Debug/Assignment 5 part 1.ilk
+#	modified:   Debug/Assignment 5 part 1.log
+#	modified:   Debug/Assignment 5 part 1.pdb
+#	modified:   Debug/Assignment 5.obj
+#	modified:   Debug/Function.obj
+#	modified:   Debug/vc120.idb
+#	modified:   Debug/vc120.pdb
+#	modified:   Function.cpp
+#	modified:   question 1.csv
+#
+

@@ -40,17 +40,31 @@ int main()
 			calculate_inputs(x, t, N, u, m);
 			calculate_Xd(x, t, N, u, m, xd);
 
+			//cout values before change
 			cout << endl;
-			for (int i = 1; i <= N; i++)
+			for (int i = 1; i <= N; i++){
 				cout << "X[" << i << "] = " << x[i] << " ";
+			}
+			cout << endl;
+			for (int i = 1; i <= N; i++){
+				cout << "Xd[" << i << "] = " << xd[i] << " ";
+			}
 			cout << endl;
 
 			for (int i = 1; i <= N; i++) x[i] = x[i] + xd[i] * dt; // euler equation
+
+			//cout values after change
+			for (int i = 1; i <= N; i++){
+				cout << "X[" << i << "]' = " << x[i] << " ";
+			}
+			cout << endl;
+
 			t = t + dt;
 			if (t<tf) fout << "\n";
 		}
 		fout.close();
 	}
+
 	cout << "done!\n";
 	return 0;
 }
