@@ -15,7 +15,7 @@ int main()
 	double x[N + 1];
 	double xd[N + 1];
 	double dt = 0.01;
-	double tf = 0.1;
+	double tf = 3;
 	const int m = 3;
 	double u[m + 1];
 	double invm[4][4];

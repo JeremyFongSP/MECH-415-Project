@@ -28,14 +28,14 @@ void calculate_inputs(const double X[], double t, int N, double U[], int M)
 
 	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
 
-	F[1] = 10;		//Leave them separate so we can give them different inputs individually
-	F[2] = 10;
-	F[3] = 10;
+	F[1] = 0;		//Leave them separate so we can give them different inputs individually
+	F[2] = 0;
+	F[3] = 0;
 
 	for (int i = 1; i <= 3; i++) U[i] = F[i];
 }
 
-void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[], double invM[4][4], double c[4])
+void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[])
 {
 	double Ma[3 + 1][3 + 1]; // inertia matrix
 	double G[3 + 1]; // gravity vector matrix
@@ -136,9 +136,9 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	
 //	for (int i = 1; i <= 3; i++) dv[i] = Ma[i][1] * (F[1] - C[1] - G[1]) + Ma[i][2] * (F[2] - C[2] - G[2]) + Ma[i][3] * (F[3] - C[3] - G[3]);
 	//changing sign and Ma to Minv, remove for loop
-	dv[1] = Minv[1][1] * (F[1] + C[1] + G[1]) + Minv[1][2] * (F[2] + C[2] + G[2]) + Minv[1][3] * (F[3] + C[3] + G[3]);
-	dv[2] = Minv[1][2] * (F[1] + C[1] + G[1]) + Minv[2][2] * (F[2] + C[2] + G[2]) + Minv[2][3] * (F[3] + C[3] + G[3]);
-	dv[3] = Minv[1][3] * (F[1] + C[1] + G[1]) + Minv[2][3] * (F[2] + C[2] + G[2]) + Minv[3][3] * (F[3] + C[3] + G[3]);
+	dv[1] = Minv[1][1] * (F[1] - C[1] - G[1]) + Minv[1][2] * (F[2] - C[2] - G[2]) + Minv[1][3] * (F[3] - C[3] - G[3]);
+	dv[2] = Minv[1][2] * (F[1] - C[1] - G[1]) + Minv[2][2] * (F[2] - C[2] - G[2]) + Minv[2][3] * (F[3] - C[3] - G[3]);
+	dv[3] = Minv[1][3] * (F[1] - C[1] - G[1]) + Minv[2][3] * (F[2] - C[2] - G[2]) + Minv[3][3] * (F[3] - C[3] - G[3]);
 
 	//for (int i = 1; i <= 3; i++) dv[i] = Minv[i][1] * (F[1] - C[1] - G[1]) + Minv[i][2] * (F[2] - C[2] - G[2]) + Minv[i][3] * (F[3] - C[3] - G[3]);
 //	for (int i = 1; i <= 3; i++) dv[i] = Minv[i][1] * (F[1] - G[1]) + Minv[i][2] * (F[2] - G[2]) + Minv[i][3] * (F[3] - G[3]);
