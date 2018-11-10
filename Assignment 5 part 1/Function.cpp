@@ -41,7 +41,7 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	double F[3 + 1];
 
 	//x[] are relative angles (x[1] = theta1, x[2] = theta2 x[3] = theta3)
-	//v[] are relative velocities 
+	//v[] are relative velocities
 	double x[3 + 1], v[3 + 1]; // state variables
 	double dx[3 + 1], dv[3 + 1]; // derivatives
 
@@ -51,22 +51,14 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	for (int i = 1; i <= 3; i++) F[i] = U[i];
 
 	// defining the parameters
-	double m[3 + 1] = { 0.0, 10.0, 10.0, 10.0 }; // mass matrix of all the arms
+	double m[3 + 1] = { 0.0, 1.0, 1.0, 1.0 }; // mass matrix of all the arms
 	double l[3 + 1] = { 0.0,  2.0, 2.0, 2.0 }; // length matrix of the arms 
 	double R = 4.0;
-	double g = 9.81;
 	double det = 0.0;
 	double Minv[3 + 1][3 + 1] = { 0.0 };
 
 	// Dynamic model
-
-	//Compute Mass Matrix
-	Ma[1][1] = (m[1] * R * R) / 2 + (m[2] * l[2] * l[2] * cos(x[2]) * cos(x[2])) / 3 + (m[3] * l[3] * l[3] * cos(x[2] + x[3]) * cos(x[2] + x[3])) / 3 + (m[3] * l[2] * l[2] * cos(x[2]) * cos(x[2])) + (m[3] * l[2] * l[3] * cos(x[2] + x[3])*cos(x[2]));
-	Ma[2][2] = (m[2] * l[2] * l[2]) / 3 + (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]));
-	Ma[2][3] = (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3])) / 3;
-	Ma[3][3] = (m[3] * l[3] * l[3]) / 3;
-	Ma[1][2] = Ma[1][3] = Ma[2][1] = Ma[3][1] = 0.0;
-	Ma[3][2] = Ma[2][3];
+	ComputeMassMatrix(m, x, R, l, Ma);
 
 	cout << "\n";
 	for (int i = 1; i <= 3; i++)
@@ -79,18 +71,14 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	}
 
 	//Compute Gravity Matrix
-	G[1] = 0;
-	G[2] = (m[2] * g * l[2] * cos(x[2])) / 2 + (m[3] * g * l[3] * cos(x[2] + x[3])) / 2 + (m[3] * g * l[2] * cos(x[2]));
-	G[3] = (m[3] * g * l[3] * cos(x[2] + x[3])) / 2;
+	ComputeGravityMatrix(m, x, l, G);
 
 	for (int i = 1; i <= 3; i++)
 		cout << "G[" << i << "] = " << G[i] << " ";
 
 	//Compute Coriolis Matrix
-	C[1] = ((-4 / 3)*(m[2] * l[2] * l[2] * sin(2 * x[2])) - (m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) / 3 - (m[3] * l[2] * l[3] * sin(2 * x[2] + x[3]))) * v[2] * v[1] + ((-1 / 3)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) - (m[3] * l[2] * l[3] * cos(x[2])*sin(x[2] + x[3]))) * v[3] * v[1];
-	C[2] = ((-1)*(m[3] * l[2] * l[3] * sin(x[3])) * v[2] * v[3] + (-1 / 2)*(m[3] * l[2] * l[3] * sin(x[3])) * v[3] * v[3] + ((1 / 6)*(m[2] * l[2] * l[2] * sin(2 * x[2])) + (1 / 6)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) + (1 / 2)*(m[3] * l[2] * l[2] * sin(2 * x[2])) + (1 / 2)*(m[3] * l[2] * l[3] * sin(2 * x[2] + x[3])))*v[1] * v[1]);
-	C[3] = ((1 / 2)*(m[3] * l[2] * l[3] * sin(x[3]))) * v[2] * v[2] + ((1 / 6)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) + (1 / 2)*(m[3] * l[2] * l[3] * cos(x[2])*sin(x[2] + x[3])))*v[1] * v[1];
-
+	ComputeCoriolisMatrix(m, x, v, l, C);
+	
 	cout << endl;
 	for (int i = 1; i <= 3; i++)
 		cout << "C[" << i << "] = " << C[i] << " ";
@@ -98,25 +86,12 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	cout << endl << endl;
 
 	//Compute Mass Matrix Determinant
-	for (int i = 1; i <= 3; i++)
-	{
-		if (i == 1) det += Ma[1][1] * (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]);
-		if (i == 2) det -= Ma[1][2] * (Ma[2][1] * Ma[3][3] - Ma[3][1] * Ma[2][3]);
-		if (i == 3) det += Ma[1][3] * (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]);
-	}
+	ComputeDeterminant(Ma, det);
 
 	cout << "det = " << det << endl;
 
 	//Compute Inverse Mass Matrix
-	Minv[1][1] = (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]) / det;
-	Minv[1][2] = (Ma[1][3] * Ma[3][2] - Ma[1][2] * Ma[3][3]) / det;
-	Minv[1][3] = (Ma[1][2] * Ma[2][3] - Ma[1][3] * Ma[2][2]) / det;
-	Minv[2][1] = (Ma[2][3] * Ma[3][1] - Ma[2][1] * Ma[3][3]) / det;
-	Minv[2][2] = (Ma[1][1] * Ma[3][3] - Ma[1][3] * Ma[3][1]) / det;
-	Minv[2][3] = (Ma[2][1] * Ma[1][3] - Ma[1][1] * Ma[2][3]) / det;
-	Minv[3][1] = (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]) / det;
-	Minv[3][2] = (Ma[3][1] * Ma[1][2] - Ma[1][1] * Ma[3][2]) / det;
-	Minv[3][3] = (Ma[1][1] * Ma[2][2] - Ma[2][1] * Ma[1][2]) / det;
+	ComputeInvertedMatrix(Ma, det, Minv);
 
 	cout << "\n";
 	for (int i = 1; i <= 3; i++)
@@ -131,16 +106,62 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	// Velocity kinematic
 	for (int i = 1; i <= 3; i++) dx[i] = v[i];
 	
-//	for (int i = 1; i <= 3; i++) dv[i] = Ma[i][1] * (F[1] - C[1] - G[1]) + Ma[i][2] * (F[2] - C[2] - G[2]) + Ma[i][3] * (F[3] - C[3] - G[3]);
-	//changing sign and Ma to Minv, remove for loop
 	dv[1] = Minv[1][1] * (F[1] - C[1] - G[1]) + Minv[1][2] * (F[2] - C[2] - G[2]) + Minv[1][3] * (F[3] - C[3] - G[3]);
 	dv[2] = Minv[1][2] * (F[1] - C[1] - G[1]) + Minv[2][2] * (F[2] - C[2] - G[2]) + Minv[2][3] * (F[3] - C[3] - G[3]);
 	dv[3] = Minv[1][3] * (F[1] - C[1] - G[1]) + Minv[2][3] * (F[2] - C[2] - G[2]) + Minv[3][3] * (F[3] - C[3] - G[3]);
 
-	//for (int i = 1; i <= 3; i++) dv[i] = Minv[i][1] * (F[1] - C[1] - G[1]) + Minv[i][2] * (F[2] - C[2] - G[2]) + Minv[i][3] * (F[3] - C[3] - G[3]);
-//	for (int i = 1; i <= 3; i++) dv[i] = Minv[i][1] * (F[1] - G[1]) + Minv[i][2] * (F[2] - G[2]) + Minv[i][3] * (F[3] - G[3]);
-
 	// pack the state variables
 	for (int i = 1; i <= 3; i++) Xd[i] = dx[i];
 	for (int i = 1; i <= 3; i++) Xd[i + 3] = dv[i];
+}
+
+void ComputeMassMatrix(double m[3 + 1], double x[3 + 1], double R, double l[3 + 1], double Ma[3 + 1][3 + 1])
+{
+	Ma[1][1] = (m[1] * R * R) / 2 + (m[2] * l[2] * l[2] * cos(x[2]) * cos(x[2])) / 3 + (m[3] * l[3] * l[3] * cos(x[2] + x[3]) * cos(x[2] + x[3])) / 3 + (m[3] * l[2] * l[2] * cos(x[2]) * cos(x[2])) + (m[3] * l[2] * l[3] * cos(x[2] + x[3])*cos(x[2]));
+	Ma[2][2] = (m[2] * l[2] * l[2]) / 3 + (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]));
+	Ma[2][3] = (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3])) / 3;
+	Ma[3][3] = (m[3] * l[3] * l[3]) / 3;
+	Ma[1][2] = Ma[1][3] = Ma[2][1] = Ma[3][1] = 0.0;
+	Ma[3][2] = Ma[2][3];
+
+}
+
+void ComputeGravityMatrix(double m[3 + 1], double x[3 + 1], double l[3 + 1], double G[3 + 1])
+{
+	double g = 9.81;
+	
+	G[1] = 0;
+	G[2] = (m[2] * g * l[2] * cos(x[2])) / 2 + (m[3] * g * l[3] * cos(x[2] + x[3])) / 2 + (m[3] * g * l[2] * cos(x[2]));
+	G[3] = (m[3] * g * l[3] * cos(x[2] + x[3])) / 2;
+}
+
+void ComputeCoriolisMatrix(double m[3 + 1], double x[3 + 1], double v[3 + 1], double l[3 + 1], double C[3 + 1])
+{
+	C[1] = ((-4 / 3)*(m[2] * l[2] * l[2] * sin(2 * x[2])) - (m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) / 3 - (m[3] * l[2] * l[3] * sin(2 * x[2] + x[3]))) * v[2] * v[1] + ((-1 / 3)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) - (m[3] * l[2] * l[3] * cos(x[2])*sin(x[2] + x[3]))) * v[3] * v[1];
+	C[2] = ((-1)*(m[3] * l[2] * l[3] * sin(x[3])) * v[2] * v[3] + (-1 / 2)*(m[3] * l[2] * l[3] * sin(x[3])) * v[3] * v[3] + ((1 / 6)*(m[2] * l[2] * l[2] * sin(2 * x[2])) + (1 / 6)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) + (1 / 2)*(m[3] * l[2] * l[2] * sin(2 * x[2])) + (1 / 2)*(m[3] * l[2] * l[3] * sin(2 * x[2] + x[3])))*v[1] * v[1]);
+	C[3] = ((1 / 2)*(m[3] * l[2] * l[3] * sin(x[3]))) * v[2] * v[2] + ((1 / 6)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) + (1 / 2)*(m[3] * l[2] * l[3] * cos(x[2])*sin(x[2] + x[3])))*v[1] * v[1];
+}
+
+void ComputeDeterminant(double Ma[3 + 1][3 + 1], double & det)
+{
+	for (int i = 1; i <= 3; i++)
+	{
+		if (i == 1) det += Ma[1][1] * (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]);
+		if (i == 2) det -= Ma[1][2] * (Ma[2][1] * Ma[3][3] - Ma[3][1] * Ma[2][3]);
+		if (i == 3) det += Ma[1][3] * (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]);
+	}
+
+}
+
+void ComputeInvertedMatrix(double Ma[3 + 1][3 + 1], double det, double Minv[3 + 1][3 + 1])
+{
+	Minv[1][1] = (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]) / det;
+	Minv[1][2] = (Ma[1][3] * Ma[3][2] - Ma[1][2] * Ma[3][3]) / det;
+	Minv[1][3] = (Ma[1][2] * Ma[2][3] - Ma[1][3] * Ma[2][2]) / det;
+	Minv[2][1] = (Ma[2][3] * Ma[3][1] - Ma[2][1] * Ma[3][3]) / det;
+	Minv[2][2] = (Ma[1][1] * Ma[3][3] - Ma[1][3] * Ma[3][1]) / det;
+	Minv[2][3] = (Ma[2][1] * Ma[1][3] - Ma[1][1] * Ma[2][3]) / det;
+	Minv[3][1] = (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]) / det;
+	Minv[3][2] = (Ma[3][1] * Ma[1][2] - Ma[1][1] * Ma[3][2]) / det;
+	Minv[3][3] = (Ma[1][1] * Ma[2][2] - Ma[2][1] * Ma[1][2]) / det;
 }
