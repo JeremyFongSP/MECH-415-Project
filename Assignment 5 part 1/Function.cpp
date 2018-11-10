@@ -9,6 +9,8 @@
 
 using namespace std;
 
+const double PI = atan(1) * 4;
+
 void calculate_inputs(const double X[], double t, int N, double U[], int M)
 {
 	//x[] are relative angles (x[1] = theta1, x[2] = theta2 x[3] = theta3)
@@ -26,9 +28,14 @@ void calculate_inputs(const double X[], double t, int N, double U[], int M)
 
 	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
 
+	//Arm 2 and 3 equilibrium
+//	F[1] = 0;
+//	F[2] = 1*9.81*2/2 + 1*9.81*(2/2+2);
+//	F[3] = 1*9.81*2/2;
+
 	F[1] = 0;		//Leave them separate so we can give them different inputs individually
-	F[2] = 0;
-	F[3] = 0;
+	F[2] = 1 * 9.81 * (2 / 2 * cos(PI / 3) + 2 * cos(PI / 3) + 2/2);
+	F[3] = 1*9.81*2/2;
 
 	for (int i = 1; i <= 3; i++) U[i] = F[i];
 }
@@ -53,7 +60,8 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	// defining the parameters
 	double m[3 + 1] = { 0.0, 1.0, 1.0, 1.0 }; // mass matrix of all the arms
 	double l[3 + 1] = { 0.0,  2.0, 2.0, 2.0 }; // length matrix of the arms 
-	double R = 4.0;
+	double D = (l[2] + l[3]) * sin((PI - x[3])/2);	//Distance from end of arm 1 to tip of arm 3
+	double R = D * cos(x[2] + x[3]);	//Distance of D in x/y plane
 	double det = 0.0;
 	double Minv[3 + 1][3 + 1] = { 0.0 };
 

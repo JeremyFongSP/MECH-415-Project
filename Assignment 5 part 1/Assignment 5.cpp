@@ -17,7 +17,7 @@ int main()
 	double x[N + 1];
 	double xd[N + 1];
 	double dt = 0.01;
-	double tf = 5;
+	double tf = 20;
 	const int m = 3;
 	double u[m + 1];
 
@@ -34,8 +34,8 @@ int main()
 		}
 */
 		x[1] = 0.0;			//Leave as separate so we can change them more easily
-		x[2] = -PI/2;
-		x[3] = 0.0;
+		x[2] = PI/3;
+		x[3] = -PI/3;
 		x[4] = 0.0;
 		x[5] = 0.0;
 		x[6] = 0.0;
