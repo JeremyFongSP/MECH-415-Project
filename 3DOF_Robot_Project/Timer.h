@@ -1,0 +1,1 @@
+double high_resolution_timer();
