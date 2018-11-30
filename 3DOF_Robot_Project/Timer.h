@@ -1,1 +1,5 @@
-double high_resolution_timer();
+
+// timer functions
+
+// windows high resolution time function
+double high_resolution_time();
