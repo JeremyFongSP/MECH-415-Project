@@ -52,7 +52,7 @@ void draw_3D_graphics() //This function gets called repeatedly from the main(), 
 	static double t; // clock time from t0
 	static double t0; // initial clock time
 
-	static mesh m1("arm1_test.x"); // the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
+	static mesh m1("arm1.x"); // the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
 	//static mesh m2("plane.x");//You can keep adding max of 8 mesh files.
 	static mesh m3("arm2.x");
 
@@ -105,9 +105,9 @@ void draw_3D_graphics() //This function gets called repeatedly from the main(), 
 
 
 	//For object m3
-	Px3 =  -0.4;
+	Px3 =  0.0;
 	Py3 = 0.0;
-	Pz3 =  1.1;
+	Pz3 =  0.0;
 
 	yaw3 = yaw;
 	pitch3 = 0.0;
@@ -134,8 +134,8 @@ m1.draw(Px,Py,Pz,yaw,pitch,roll);
 //m2.draw(Px2, Py2, Pz2, yaw2, pitch2, roll2); 
 
 
-m3.Scale = 0.1;
-m3.draw(Px3, Py3, Pz3, yaw, pitch3, roll3); 
+//m3.Scale = 0.1;
+//m3.draw(Px3, Py3, Pz3, yaw, pitch3, roll3); 
 
 
 

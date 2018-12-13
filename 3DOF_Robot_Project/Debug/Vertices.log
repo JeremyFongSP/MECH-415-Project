@@ -1,4 +1,4 @@
-﻿Build started 2018-11-29 7:23:55 PM.
+﻿Build started 2018-11-30 9:09:29 PM.
      1>Project "C:\Users\AF\MECH-415-Project\3DOF_robot_project\Vertices.vcxproj" on node 2 (Build target(s)).
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppBuild.targets(388,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (3DOF_robot_project.vcxproj).  This can lead to incorrect clean and rebuild behavior.
      1>ClCompile:
@@ -14,4 +14,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.07
+Time Elapsed 00:00:00.98
