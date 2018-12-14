@@ -189,7 +189,7 @@ void draw_3D_graphics()
 	Py3 =	17.5 * cos(pitch2 - PI / 12) * sin(yaw);
 	Pz3 =	17.5 - 17.5 * sin(pitch2 - PI / 12);			//L Arm ~ 17.5; negative is upwards again due to pitch; remove neutral
 	yaw3 =	yaw;
-//	pitch3 = PI/12;											//Pitch3 is update by simulation
+//	pitch3 = PI/12;											//Pitch3 is updated by simulation
 	roll3 = 0.0;
 
 //TO-DO:	Add Collision detection to stop movements (arms to arms & arms to floor)

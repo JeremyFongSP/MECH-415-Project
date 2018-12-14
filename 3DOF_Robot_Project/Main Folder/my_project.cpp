@@ -15,7 +15,7 @@ using namespace std;
 
 //Global non-changing variables
 const double PI =	atan(1) * 4;
-const double g =	9.81;
+const double g	=	9.81;
 double m[3 + 1] =	{ -1.0, 100.0, 100.0, 100.0 };		//Mass of arms
 double l[3 + 1] =	{ -1.0, 16.5, 17.5, 17.5 };			//Length of arms
 
@@ -36,8 +36,8 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 
 		xtemp[0] = -1.0;								// not used
 		xtemp[1] = 0.0;									// initial theta1 (yaw)
-		xtemp[2] = PI / 12 - PI / 6;					// initial theta2 (pitch2)
-		xtemp[3] = - PI / 12 + PI /6;					// initial theta3 (pitch3)
+		xtemp[2] = 0.0;								// initial theta2 (pitch2)
+		xtemp[3] = 0.0;								// initial theta3 (pitch3)
 		xtemp[4] = 0.0;									// initial vheta1
 		xtemp[5] = 0.0;									// initial vheta2
 		xtemp[6] = 0.0;									// initial vheta3
@@ -100,8 +100,8 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	for (int i = 1; i <= 3; i++) F[i] = U[i];
 
 	// defining the parameters
-	double D = (l[2] + l[3]) * sin((PI - x[3]) / 2);	//Distance from end of arm 1 to tip of arm 3
-	double R = D * cos(x[2] + x[3] / 2);				//Distance of D in x/y plane
+	double D = (l[2] + l[3]) * sin((PI - abs(x[3])) / 2);	//Distance from end of arm 1 to tip of arm 3
+	double R = D * cos(x[2] + x[3] / 2);					//Distance of D in x/y plane
 	double det = 0.0;
 	double Minv[3 + 1][3 + 1] = { 0.0 };
 
@@ -118,7 +118,11 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	dv[1] = Minv[1][1] * (F[1] - C[1] - G[1]) + Minv[1][2] * (F[2] - C[2] - G[2]) + Minv[1][3] * (F[3] - C[3] - G[3]);
 	dv[2] = Minv[1][2] * (F[1] - C[1] - G[1]) + Minv[2][2] * (F[2] - C[2] - G[2]) + Minv[2][3] * (F[3] - C[3] - G[3]);
 	dv[3] = Minv[1][3] * (F[1] - C[1] - G[1]) + Minv[2][3] * (F[2] - C[2] - G[2]) + Minv[3][3] * (F[3] - C[3] - G[3]);
-
+/*
+	dv[1] = Minv[1][1] * (F[1] + C[1] - G[1]) + Minv[1][2] * (F[2] - C[2] - G[2]) + Minv[1][3] * (F[3] - C[3] - G[3]);
+	dv[2] = Minv[2][1] * (F[1] + C[1] - G[1]) + Minv[2][2] * (F[2] - C[2] - G[2]) + Minv[2][3] * (F[3] - C[3] - G[3]);
+	dv[3] = Minv[3][1] * (F[1] + C[1] - G[1]) + Minv[3][2] * (F[2] - C[2] - G[2]) + Minv[3][3] * (F[3] - C[3] - G[3]);
+*/
 	// update/pack xd[]
 	for (int i = 1; i <= 3; i++) Xd[i] = dx[i];
 	for (int i = 1; i <= 3; i++) Xd[i + 3] = dv[i];
@@ -129,16 +133,29 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 
 void ComputeMassMatrix(double m[3 + 1], double x[3 + 1], double R, double l[3 + 1], double Ma[3 + 1][3 + 1])
 {
+	Ma[1][1] = (m[1] * R * R) / 2 + (m[2] * l[2] * l[2] * cos(x[2]) * cos(x[2])) / 3 + (m[3] * l[3] * l[3] * cos(x[2] - x[3]) * cos(x[2] - x[3])) / 3 + (m[3] * l[2] * l[2] * cos(x[2]) * cos(x[2])) + (m[3] * l[2] * l[3] * cos(x[2] - x[3])*cos(x[2]));
+	Ma[2][2] = (m[2] * l[2] * l[2]) / 3 + (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]));
+	Ma[2][3] = (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3])) / 3;
+	Ma[3][3] = (m[3] * l[3] * l[3]) / 3;
+	Ma[1][2] = Ma[1][3] = Ma[2][1] = Ma[3][1] = 0.0;
+	Ma[3][2] = Ma[2][3];
+	/*
 	Ma[1][1] = (m[1] * R * R) / 2 + (m[2] * l[2] * l[2] * cos(x[2]) * cos(x[2])) / 3 + (m[3] * l[3] * l[3] * cos(x[2] + x[3]) * cos(x[2] + x[3])) / 3 + (m[3] * l[2] * l[2] * cos(x[2]) * cos(x[2])) + (m[3] * l[2] * l[3] * cos(x[2] + x[3])*cos(x[2]));
 	Ma[2][2] = (m[2] * l[2] * l[2]) / 3 + (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3]));
 	Ma[2][3] = (m[3] * l[3] * l[3]) / 3 + (m[3] * l[2] * l[2]) + (m[3] * l[2] * l[3] * cos(x[3])) / 3;
 	Ma[3][3] = (m[3] * l[3] * l[3]) / 3;
 	Ma[1][2] = Ma[1][3] = Ma[2][1] = Ma[3][1] = 0.0;
 	Ma[3][2] = Ma[2][3];
+	*/
 }
 
 void ComputeGravityMatrix(double m[3 + 1], double x[3 + 1], double l[3 + 1], double G[3 + 1])
 {
+	/*
+	G[1] = 0;
+	G[2] = ((m[2] * g * l[2] * cos(x[2])) / 2 + (m[3] * g * l[3] * cos(x[2] + x[3])) / 2 + (m[3] * g * l[2] * cos(x[2])));
+	G[3] = (m[3] * g * l[3] * cos(x[2] + x[3])) / 2;		// Should this be negative?
+	*/
 	G[1] = 0;
 	G[2] = (m[2] * g * l[2] * cos(x[2])) / 2 + (m[3] * g * l[3] * cos(x[2] + x[3])) / 2 + (m[3] * g * l[2] * cos(x[2]));
 	G[3] = (m[3] * g * l[3] * cos(x[2] + x[3])) / 2;		// Should this be negative?
@@ -146,32 +163,63 @@ void ComputeGravityMatrix(double m[3 + 1], double x[3 + 1], double l[3 + 1], dou
 
 void ComputeCoriolisMatrix(double m[3 + 1], double x[3 + 1], double v[3 + 1], double l[3 + 1], double C[3 + 1])
 {
+	/*
+	C[1] = (((-4 / 3)*(m[2] * l[2] * l[2] * sin(2 * abs(x[2]))) - (m[3] * l[3] * l[3] * sin(2 * (abs(x[2]) + abs(x[3])))) / 3 - (m[3] * l[2] * l[3] * sin(2 * abs(x[2]) + abs(x[3])))) * v[2] * v[1] + ((-1 / 3)*(m[3] * l[3] * l[3] * sin(2 * (abs(x[2]) + abs(x[3])))) - (m[3] * l[2] * l[3] * cos(x[2])*sin(abs(x[2]) + abs(x[3])))) * v[3] * v[1]);
+	C[2] = (((-1)*(m[3] * l[2] * l[3] * sin(abs(x[3]))) * v[2] * v[3] + (-1 / 2)*(m[3] * l[2] * l[3] * sin(abs(x[3]))) * v[3] * v[3] + ((1 / 6)*(m[2] * l[2] * l[2] * sin(2 * abs(x[2]))) + (1 / 6)*(m[3] * l[3] * l[3] * sin(2 * (abs(x[2]) + abs(x[3])))) + (1 / 2)*(m[3] * l[2] * l[2] * sin(2 * abs(x[2]))) + (1 / 2)*(m[3] * l[2] * l[3] * sin(2 * abs(x[2]) + abs(x[3]))))*v[1] * v[1]));
+	C[3] = (((1 / 2)*(m[3] * l[2] * l[3] * sin(abs(x[3])))) * v[2] * v[2] + ((1 / 6)*(m[3] * l[3] * l[3] * sin(2 * (abs(x[2]) + abs(x[3])))) + (1 / 2)*(m[3] * l[2] * l[3] * cos(x[2])*sin(abs(x[2]) + abs(x[3]))))*v[1] * v[1]);
+	*/
 	C[1] = ((-4 / 3)*(m[2] * l[2] * l[2] * sin(2 * x[2])) - (m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) / 3 - (m[3] * l[2] * l[3] * sin(2 * x[2] + x[3]))) * v[2] * v[1] + ((-1 / 3)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) - (m[3] * l[2] * l[3] * cos(x[2])*sin(x[2] + x[3]))) * v[3] * v[1];
 	C[2] = ((-1)*(m[3] * l[2] * l[3] * sin(x[3])) * v[2] * v[3] + (-1 / 2)*(m[3] * l[2] * l[3] * sin(x[3])) * v[3] * v[3] + ((1 / 6)*(m[2] * l[2] * l[2] * sin(2 * x[2])) + (1 / 6)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) + (1 / 2)*(m[3] * l[2] * l[2] * sin(2 * x[2])) + (1 / 2)*(m[3] * l[2] * l[3] * sin(2 * x[2] + x[3])))*v[1] * v[1]);
 	C[3] = ((1 / 2)*(m[3] * l[2] * l[3] * sin(x[3]))) * v[2] * v[2] + ((1 / 6)*(m[3] * l[3] * l[3] * sin(2 * (x[2] + x[3]))) + (1 / 2)*(m[3] * l[2] * l[3] * cos(x[2])*sin(x[2] + x[3])))*v[1] * v[1];
+
 }
 
 void ComputeDeterminant(double Ma[3 + 1][3 + 1], double & det)
 {
-	for (int i = 1; i <= 3; i++)
+	det = Ma[1][1] * (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]) - Ma[1][2] * (Ma[2][1] * Ma[3][3] - Ma[3][1] * Ma[2][3]) + Ma[1][3] * (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]);
+/*	for (int i = 1; i <= 3; i++)
 	{
 		if (i == 1) det += Ma[1][1] * (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]);
 		if (i == 2) det -= Ma[1][2] * (Ma[2][1] * Ma[3][3] - Ma[3][1] * Ma[2][3]);
 		if (i == 3) det += Ma[1][3] * (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]);
 	}
+*/
 }
 
 void ComputeInvertedMatrix(double Ma[3 + 1][3 + 1], double det, double Minv[3 + 1][3 + 1])
 {
-	Minv[1][1] = (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]) / det;
-	Minv[1][2] = (Ma[1][3] * Ma[3][2] - Ma[1][2] * Ma[3][3]) / det;
-	Minv[1][3] = (Ma[1][2] * Ma[2][3] - Ma[1][3] * Ma[2][2]) / det;
-	Minv[2][1] = (Ma[2][3] * Ma[3][1] - Ma[2][1] * Ma[3][3]) / det;
-	Minv[2][2] = (Ma[1][1] * Ma[3][3] - Ma[1][3] * Ma[3][1]) / det;
-	Minv[2][3] = (Ma[2][1] * Ma[1][3] - Ma[1][1] * Ma[2][3]) / det;
-	Minv[3][1] = (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]) / det;
-	Minv[3][2] = (Ma[3][1] * Ma[1][2] - Ma[1][1] * Ma[3][2]) / det;
-	Minv[3][3] = (Ma[1][1] * Ma[2][2] - Ma[2][1] * Ma[1][2]) / det;
+	double temp;
+	Minv[1][1] = (Ma[2][2] * Ma[3][3] - Ma[3][2] * Ma[2][3]);
+	Minv[1][2] = -(Ma[1][3] * Ma[3][2] - Ma[1][2] * Ma[3][3]);
+	Minv[1][3] = (Ma[1][2] * Ma[2][3] - Ma[1][3] * Ma[2][2]);
+	Minv[2][1] = -(Ma[2][3] * Ma[3][1] - Ma[2][1] * Ma[3][3]);
+	Minv[2][2] = (Ma[1][1] * Ma[3][3] - Ma[1][3] * Ma[3][1]);
+	Minv[2][3] = -(Ma[2][1] * Ma[1][3] - Ma[1][1] * Ma[2][3]);
+	Minv[3][1] = (Ma[2][1] * Ma[3][2] - Ma[3][1] * Ma[2][2]);
+	Minv[3][2] = -(Ma[3][1] * Ma[1][2] - Ma[1][1] * Ma[3][2]);
+	Minv[3][3] = (Ma[1][1] * Ma[2][2] - Ma[2][1] * Ma[1][2]);
+
+	temp = Minv[1][2];
+	Minv[1][2] = Minv[2][1];
+	Minv[2][1] = temp;
+
+	temp = Minv[1][3];
+	Minv[1][3] = Minv[3][1];
+	Minv[3][1] = temp;
+
+	temp = Minv[2][3];
+	Minv[2][3] = Minv[3][2];
+	Minv[3][2] = temp;
+
+	Minv[1][1] /= det;
+	Minv[1][2] /= det;
+	Minv[1][3] /= det;
+	Minv[2][1] /= det;
+	Minv[2][2] /= det;
+	Minv[2][3] /= det;
+	Minv[3][1] /= det;
+	Minv[3][2] /= det;
+	Minv[3][3] /= det;
 }
 
 void stabilize(double X[], double m[], double l[], double theta1, double theta2, double theta3, double U[])
@@ -190,8 +238,8 @@ void locateObject(double objThetas[3+1], double x, double y, double z)
 	double r;
 	double D;
 	objThetas[1] =	atan2(y, x);
-	r =				sqrt(x*x + y*y);
-	D =				sqrt((z - l[1])*(z - l[1]) + r * r);
+	r			 =	sqrt(x*x + y*y);
+	D			 =	sqrt((z - l[1])*(z - l[1]) + r * r);
 	objThetas[3] =	acos((D * D - l[3] * l[3] - l[2] * l[2]) / (2 * l[2] * l[3]));
 //	objThetas[3] =	acos((((z - l[1])*(z - l[1]) + x*x + y*y - l[3] * l[3] - l[2] * l[2])) / (2 * l[2] * l[3]));
 	objThetas[2] =	atan2(r, z - l[1]) - atan2(l[2] + l[3] * cos(objThetas[3]), l[3] * sin(objThetas[3]));
@@ -201,7 +249,7 @@ void locateObject(double objThetas[3+1], double x, double y, double z)
 
 void pointAtObject(double dt, double objTheta[3 + 1], double & yaw, double & pitch2, double & pitch3)
 {
-	if (yaw != objTheta[1])		yaw += (objTheta[1] - yaw)*dt;
+	if (yaw != objTheta[1])		yaw	   += (objTheta[1] - yaw)*dt;
 	if (pitch2 != objTheta[2])	pitch2 += (objTheta[2] - pitch2)*dt;
 	if (pitch3 != objTheta[3])	pitch3 += (objTheta[3] - pitch3)*dt;
 
