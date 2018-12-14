@@ -72,9 +72,9 @@ void draw_3D_graphics()
 
 	static double T, fps, tp, dt, dt2;							// dt used for sim stepping; dt2 used to move arm
 
-	static mesh m1("arm1_test.x");								//the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
+	static mesh m1("arm1.x");									//the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
 	static mesh m2("arm2.x");									//You can keep adding max of 8 mesh files.
-	static mesh m3("arm2.x");
+	static mesh m3("arm3.x");
 	static mesh bg("background.x");
 	static mesh obj1("plane.x");
 	static mesh obj2("car.x");
@@ -94,8 +94,9 @@ void draw_3D_graphics()
 		// you can make it a static local variable
 		// and the constructor will only get called (along with 
 		// new) once
-		pitch2 =	PI / 12 - PI / 6;							//PI/12 is added for neutral position, PI/6 is 30 degrees upwards
-		pitch3 =	-PI / 12 + PI / 6;							//-PI/12 is added for neutral position, PI/6 is 30 degrees downwards
+		pitch2 =	0.0;							//PI/19 is added for neutral position, PI/6 is 30 degrees upwards
+		pitch3 =	0.0;							//-PI/12 is added for neutral position, PI/6 is 30 degrees downwards
+		yaw =		0.0;
 		Bgx =		-200.0;
 		Bgy =		-200.0; 
 		Bgz =		0.0; 
@@ -176,21 +177,21 @@ void draw_3D_graphics()
 	pitch = 0.0;
 	roll =	PI / 2;
 
-	//Arm 1 positions
+	//Arm 2 positions
 	Px2 =	0.0;
 	Py2 =	0.0;
 	Pz2 =	16.5;											//L base ~ 16.5
 	yaw2 =  yaw;
 //	pitch2 = PI/12 - PI/6;									//Pitch2 is updated by simulation
-	roll2 = 0.0;
+	roll2 = PI/2;
 
 	//For arm m3
-	Px3 =	17.5 * cos(pitch2 - PI / 12) * cos(yaw);
-	Py3 =	17.5 * cos(pitch2 - PI / 12) * sin(yaw);
-	Pz3 =	17.5 - 17.5 * sin(pitch2 - PI / 12);			//L Arm ~ 17.5; negative is upwards again due to pitch; remove neutral
+	Px3 =	16.5 * cos(pitch2 - PI/20) * cos(yaw);
+	Py3 =	16.5 * cos(pitch2 + PI/12) * sin(yaw);
+	Pz3 = 16.5 - 16.5 * sin(pitch2 - PI/20);			//L Arm ~ 17.5; negative is upwards again due to pitch; remove neutral
 	yaw3 =	yaw;
 //	pitch3 = PI/12;											//Pitch3 is updated by simulation
-	roll3 = 0.0;
+	roll3 = PI/2;
 
 //TO-DO:	Add Collision detection to stop movements (arms to arms & arms to floor)
 //TO-DO2:	Add another mesh for "hand" or "magnet" to "grab" objects

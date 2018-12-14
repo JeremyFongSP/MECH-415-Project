@@ -41,9 +41,10 @@ void draw_3D_graphics() //This function gets called repeatedly from the main(), 
 {
 
 	//Just testing things out. Subject to change.
-	static double Px,Py,Pz,roll,pitch,yaw; //Variables
+	static double Px, Py, Pz,roll,pitch,yaw; //Variables
 	static double Px2, Py2, Pz2, roll2, pitch2, yaw2; //Variables
 	static double Px3, Py3, Pz3, roll3, pitch3, yaw3; //Variables
+
 	
 	static int init = 0; // initialization flag
 	static double x=0.0,dx; // x - an offset for the object
@@ -52,9 +53,9 @@ void draw_3D_graphics() //This function gets called repeatedly from the main(), 
 	static double t; // clock time from t0
 	static double t0; // initial clock time
 
-	static mesh m1("arm1_test.x"); // the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
-	//static mesh m2("plane.x");//You can keep adding max of 8 mesh files.
-	static mesh m3("arm2.x");
+	static mesh m1("arm1.x"); // the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
+	static mesh m2("arm2.x");//You can keep adding max of 8 mesh files.
+	static mesh m3("arm3.x");
 
 
 
@@ -84,7 +85,6 @@ void draw_3D_graphics() //This function gets called repeatedly from the main(), 
 	//Control the way it rolls on its own axis(yaw, pitch, roll)
 
 	//For object m1
-	//Px = 2.0 + x;
 	Px = 0.0;
 	Py = 0.0;
 	Pz = 0.0;
@@ -94,70 +94,56 @@ void draw_3D_graphics() //This function gets called repeatedly from the main(), 
 	roll = 3.14159/2;
 	
 	//For object m2
-	Px2 = 0.00001;
-	Py2 = 0;
-	Pz2 = 0;
+	Px2 = 0.0;
+	Py2 = 0.0;
+	Pz2 = 16.51*0.09;
 
-	yaw2 =  3.14159/2;
+	yaw2 =  yaw;
 	pitch2 = 0.0;
 	roll2 = 3.14159 / 2;
 
-
-
 	//For object m3
-	Px3 =  -0.4;
+	/*
+	x, y and z coordinate of object m3 depends on the position of object m1 and m2
+	*/
+	Px3 =  0.0;
 	Py3 = 0.0;
-	Pz3 =  1.1;
+	Pz3 = 16.51*0.09;
 
 	yaw3 = yaw;
 	pitch3 = 0.0;
-	roll3 = 3.14159 ;
+	roll3 = 3.14159/2;
 
 
 
+	// move arm 3
+	if (KEY(VK_UP) && KEY(VK_SPACE)) pitch3 += 3.14159/180;
 
+	if (KEY(VK_DOWN) && KEY(VK_SPACE)) pitch3 -= 3.14159/180;
 
+	// move arm 2
+	if (KEY(VK_UP) && !KEY(VK_SPACE)) pitch2 += 3.14159/180;//increment position of z. Make sure there is Pz = ...+z
 
-	if (KEY(VK_UP)) pitch3 += 3.14159*t / 2;//increment position of z. Make sure there is Pz = ...+z
+	if (KEY(VK_DOWN) && !KEY(VK_SPACE)) pitch2 -= 3.14159/180; //Decrement the position of z
 
-	if (KEY(VK_DOWN)) pitch3 -= 3.14159*t / 2; //Decrement the position of z
+	// move arm 1
+	if (KEY(VK_RIGHT)) yaw += 3.14159/180;//increment position of X
 
-	if (KEY(VK_RIGHT)) yaw += 3.14159*t/2;//increment position of X
+	if (KEY(VK_LEFT)) yaw -= 3.14159/180; //Decrement the position of x.  Make sure Px= ...x
 
-	if (KEY(VK_LEFT)) yaw -= 3.14159*t / 2; //Decrement the position of x.  Make sure Px= ...x
 	
 // draw x-file / mesh object
-m1.Scale =0.1;
+m1.Scale =0.09;
 m1.draw(Px,Py,Pz,yaw,pitch,roll); 
 
-//m2.Scale = 0.01;
-//m2.draw(Px2, Py2, Pz2, yaw2, pitch2, roll2); 
+m2.Scale = 0.09;
+m2.draw(Px2, Py2, Pz2, yaw, pitch2, roll2); 
 
 
-m3.Scale = 0.1;
+m3.Scale = 0.09;
 m3.draw(Px3, Py3, Pz3, yaw, pitch3, roll3); 
-
-
-
-
-	dz = 0.003; // z offset increment
-	dx = 0.003;//x offset increment
-
 	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
