@@ -17,7 +17,7 @@ using namespace std;
 const double PI =	atan(1) * 4;
 const double g	=	9.81;
 double m[3 + 1] =	{ -1.0, 100.0, 100.0, 100.0 };		//Mass of arms
-double l[3 + 1] =	{ -1.0, 16.5, 17.5, 17.5 };			//Length of arms
+double l[3 + 1] =	{ -1.0, 16.5, 16.5, 18.5 };			//Length of arms
 
 void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 {
@@ -36,8 +36,8 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 
 		xtemp[0] = -1.0;								// not used
 		xtemp[1] = 0.0;									// initial theta1 (yaw)
-		xtemp[2] = 0.0;								// initial theta2 (pitch2)
-		xtemp[3] = 0.0;								// initial theta3 (pitch3)
+		xtemp[2] = -PI/2;								// initial theta2 (pitch2)
+		xtemp[3] = xtemp[2] + -PI/3;					// initial theta3 (pitch3) relative angle
 		xtemp[4] = 0.0;									// initial vheta1
 		xtemp[5] = 0.0;									// initial vheta2
 		xtemp[6] = 0.0;									// initial vheta3
@@ -55,7 +55,7 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 	// output to draw_3D_graphics
 	yaw =		xtemp[1];								// Rotates Base Position
 	pitch2 =	xtemp[2];								// Pitch First Arm Position
-	pitch3 =	xtemp[3];								// Pitch Second Arm Position
+	pitch3 =	xtemp[3]+xtemp[2];						// Pitch Second Arm Position
 }
 
 void calculate_inputs(const double X[], double t, int N, double U[], int M)
@@ -95,8 +95,15 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	double dx[3 + 1], dv[3 + 1];						// angular derivatives
 
 	// unpack state variables & inputs
-	for (int i = 1; i <= 3; i++) x[i] = X[i];
-	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
+//	for (int i = 1; i <= 3; i++) x[i] = X[i];
+//	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
+	x[1] = X[1];
+	x[2] = X[2];
+	x[3] = X[3] + X[2];
+	v[1] = X[4];
+	v[2] = X[5];
+	v[3] = X[6] + X[7];
+
 	for (int i = 1; i <= 3; i++) F[i] = U[i];
 
 	// defining the parameters
@@ -157,7 +164,7 @@ void ComputeGravityMatrix(double m[3 + 1], double x[3 + 1], double l[3 + 1], dou
 	G[3] = (m[3] * g * l[3] * cos(x[2] + x[3])) / 2;		// Should this be negative?
 	*/
 	G[1] = 0;
-	G[2] = (m[2] * g * l[2] * cos(x[2])) / 2 + (m[3] * g * l[3] * cos(x[2] + x[3])) / 2 + (m[3] * g * l[2] * cos(x[2]));
+	G[2] = (m[2] * g * l[2] * cos(x[2])) / 2 + (m[3] * g * l[3] * cos(x[3] + x[2])) / 2 + (m[3] * g * l[2] * cos(x[2]));
 	G[3] = (m[3] * g * l[3] * cos(x[2] + x[3])) / 2;		// Should this be negative?
 }
 

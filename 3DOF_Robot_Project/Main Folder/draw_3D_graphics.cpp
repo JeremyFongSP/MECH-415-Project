@@ -186,9 +186,9 @@ void draw_3D_graphics()
 	roll2 = PI/2;
 
 	//For arm m3
-	Px3 =	16.5 * cos(pitch2 - PI/20) * cos(yaw);
-	Py3 =	16.5 * cos(pitch2 + PI/12) * sin(yaw);
-	Pz3 = 16.5 - 16.5 * sin(pitch2 - PI/20);			//L Arm ~ 17.5; negative is upwards again due to pitch; remove neutral
+	Px3 =	16.5 * cos(pitch2) * cos(yaw);
+	Py3 =	16.5 * cos(pitch2) * sin(yaw);
+	Pz3 = 16.5 - 16.5 * sin(pitch2);						//L Arm ~ 16.5; negative is upwards again due to pitch
 	yaw3 =	yaw;
 //	pitch3 = PI/12;											//Pitch3 is updated by simulation
 	roll3 = PI/2;
