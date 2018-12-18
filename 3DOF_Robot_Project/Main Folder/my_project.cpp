@@ -24,7 +24,7 @@ ofstream fout_myproject("My_project_Debug.csv");
 
 //------------------------------------------------ Classes -------------------------------------------------------------
 
-Body::Body(double Px, double Py, double Pz, double pitch, double yaw, double roll)
+Body::Body(mesh *Pm, double Px, double Py, double Pz, double pitch, double yaw, double roll)
 {
 	this->Px = Px;
 	this->Py = Py;
@@ -32,29 +32,29 @@ Body::Body(double Px, double Py, double Pz, double pitch, double yaw, double rol
 	this->pitch = pitch;
 	this->yaw = yaw;
 	this->roll = roll;
+	this->Pm = Pm;
 }
 
-Arm::Arm(double length, double mass, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll) : Body(x, y, z, pitch, yaw, roll)
+void Body::draw()
+{
+	Pm->draw(Px, Py, Pz, yaw, pitch, roll);
+}
+
+Arm::Arm(double length, double mass, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll) : Body(Pm, x, y, z, pitch, yaw, roll)
 {
 	this->length = length;
 	this->mass = mass;
-	this->Pm = Pm;
 }
 
-void Arm::draw()
-{
-	Pm->draw(Px, Py, Pz, yaw, pitch, roll);
-}
-
-Object::Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll) : Body(x, y, z, pitch, yaw, roll)
+Object::Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll) : Body(Pm, x, y, z, pitch, yaw, roll)
 {
 	this->radius = radius;
-	this->Pm = Pm;
+	//N++;	//Count number of objects on the field
 }
 
-void Object::draw()
+void Object::sim_fall()
 {
-	Pm->draw(Px, Py, Pz, yaw, pitch, roll);
+	//bring all objects down
 }
 
 ObjectWorld::ObjectWorld(int N, mesh *Pm1, int M, mesh *Pm2)
@@ -65,9 +65,9 @@ ObjectWorld::ObjectWorld(int N, mesh *Pm1, int M, mesh *Pm2)
 	this->M = M;
 
 	for (int i = 1; i <= N; i++)
-		Pn[i] = new Object(5.0, Pm1, rand() % 30, rand() % 30, 0.0, 0.0, 0.0, 0.0);
+		Pn[i] = new Object(5.0, Pm1, rand() % 20, rand() % 20, 0.0, 0.0, 0.0, 0.0);
 	for (int i = 1; i <= N; i++)
-		Pm[i] = new Object(5.0, Pm2, rand() % 30, rand() % 30, 0.0, 0.0, 0.0, 0.0);
+		Pm[i] = new Object(5.0, Pm2, rand() % 20, rand() % 20, 0.0, 0.0, 0.0, 0.0);
 }
 
 ObjectWorld::~ObjectWorld()
@@ -164,13 +164,15 @@ void calculate_inputs(const double X[], double t, int N, double U[], int M)
 	if (KEY(VK_LEFT)) F[1] = -fs;
 	else if (U[1] <= -1e-4) F[1] = fs;
 	if (KEY(VK_DOWN))	F[2] = fs;
-	else if (U[2] >= 1e-4) F[2] = -fs;
+	else if (U[2] >= 1e-4)	F[2] = -fs;
 	if (KEY(VK_UP)) F[2] = -fs;
 	else if (U[2] <= -1e-4) F[2] = fs;
 	if (KEY(0x58))	F[3] = fs;
 	else if (U[3] >= 1e-4) F[3] = -fs;
 	if (KEY(0x5A)) F[3] = -fs;
 	else if (U[3] <= -1e-4) F[3] = fs;
+
+//TO-DO: Add a stop + bounce back if arm goes too far (kind of like collision)
 
 	/* these forces stabilize the arms
 	F[1] = 0;
@@ -191,7 +193,7 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 
 	double x[3 + 1], v[3 + 1];							// state variables: x[1] = yaw, x[2] = pitch2 x[3] = pitch3
 	double dx[3 + 1];	// , dv[3 + 1];					// angular derivatives
-
+	static double vp[3 + 1] = { 0.0 };		// Previous velocity
 	// unpack state variables & inputs
 	for (int i = 1; i <= 3; i++) x[i] = X[i];
 //	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
@@ -211,9 +213,9 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 //	ComputeCoriolisMatrix(m, x, v, l, C);
 //	ComputeGravityMatrix(m, x, l, G);
 
-
 	// velocity kinematic
-	for (int i = 1; i <= 3; i++) dx[i] = v[i];
+	for (int i = 1; i <= 3; i++)	dx[i] = v[i];
+
 	/*
 	dv[1] = Minv[1][1] * (F[1] - C[1] - G[1]) + Minv[1][2] * (F[2] - C[2] - G[2]) + Minv[1][3] * (F[3] - C[3] - G[3]);
 	dv[2] = Minv[1][2] * (F[1] - C[1] - G[1]) + Minv[2][2] * (F[2] - C[2] - G[2]) + Minv[2][3] * (F[3] - C[3] - G[3]);

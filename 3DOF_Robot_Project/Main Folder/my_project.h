@@ -4,8 +4,10 @@ class Body
 public:
 	double Px, Py, Pz;
 	double pitch, yaw, roll;
+	mesh *Pm;
 
-	Body(double Px, double Py, double Pz, double pitch, double yaw, double roll);
+	Body(mesh *Pm, double Px, double Py, double Pz, double pitch, double yaw, double roll);
+	void draw();
 };
 
 class Arm : public Body
@@ -13,24 +15,22 @@ class Arm : public Body
 public:
 	double length;
 	double mass;
-	mesh *Pm;
 
 	Arm(double length, double mass, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll);
-	void draw();
 };
 
 class Object : public Body
 {
 public:
 	double radius;
-	mesh *Pm;
 	bool is_grabbed = false;
+	static int N;
 
 	Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll);
-	void draw();
+	void sim_fall();		//Objects drawn to the ground
 };
 
-class ObjectWorld
+class ObjectWorld		//For random objects generation
 {
 public:
 	int N;				//mesh obj 1
@@ -42,7 +42,6 @@ public:
 	ObjectWorld(int N, mesh *Pm1, int M, mesh *Pm2);
 	~ObjectWorld();
 	void draw();
-	void fall();
 };
 
 

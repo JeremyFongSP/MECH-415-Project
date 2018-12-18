@@ -62,39 +62,45 @@ void draw_3D_graphics()
 	static mesh m3("arm3.x");
 	static mesh objm1("plane.x");
 	static mesh objm2("car.x");
-	static mesh objm3("car.x");
-	static mesh persm1("car.x");
-//	static mesh bg("background.x");
+	static mesh objm3("car.x");			//Change to another object to pick up
+	static mesh persm1("car.x");		//Change to Person
+//	static mesh bgm("starneb2.jpg");	//See X_file_library Week 7
+//	static mesh floorm("track1.x");
+	static mesh end_em("");
 
 	//Initialization for arm and object objects
-	static Arm arm1(16.5, 10.0, &m1, 0.0, 0.0, 0.0, 0.0, 0.0, PI / 2);
+	static Arm arm1(16.5, 10.0, &m1, 0.0, 0.0, 0.0, 0.0, 0.0, PI / 2);				//You can keep adding max of 8 mesh files.
 	static Arm arm2(16.5, 10.0, &m2, 0.0, 0.0, 16.5, -PI/6, arm1.yaw, PI / 2);
 	static Arm arm3(21.0, 10.0, &m3, 0.0, 0.0, 0.0, PI/6, 0.0, PI / 2);
 //	static ObjectWorld w1(1, &objm1, 1, &objm2);
-	static Object obj1(5.0, &objm1, 30.0, 0.0, 30.0, 0.0, 0.0, 0.0);
-	static Object obj2(5.0, &objm2, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
-	static Object pers1(5.0, &persm1, 20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
-	static Body end_effector(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	
+	static Object obj1(3.0, &objm1, 30.0, 0.0, 30.0, 0.0, 0.0, 0.0);
+	static Object obj2(3.0, &objm2, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+	static Object pers1(3.0, &persm1, 20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+//	static Body bg(&bgm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	static Body end_effector(&end_em, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+//	static Body floor(&floorm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+
+//TO-DO: Group all objects into an array so we can use for-loops to cycle through them when we need (pickup, fall, draw, ...)
+
+	//Set End_effector Position
 	end_effector.Px = arm3.Px + arm3.length * cos(arm3.pitch)*cos(arm1.yaw);
 	end_effector.Py = arm3.Py + arm3.length * cos(arm3.pitch)*sin(arm1.yaw);
 	end_effector.Pz = arm3.Pz + arm3.length * sin(-arm3.pitch);
+
+	//Set Dependent Arm Positions
+	arm2.yaw = arm1.yaw;
+	arm3.Px = 16.5 * cos(arm2.pitch) * cos(arm1.yaw);
+	arm3.Py = 16.5 * cos(arm2.pitch) * sin(arm1.yaw);
+	arm3.Pz = 16.5 - 16.5 * sin(arm2.pitch);
+	arm3.yaw = arm1.yaw;
+
 	static int init = 0;
-
-//TO-DO: Make a Class and an object for all of these
-
 	static double t;											// clock time from t0
 	static double t0;											// initial clock time
-
 	static double T, fps, tp, dt, dt2;							// dt used for sim stepping; dt2 used to move arm
-
-//	static mesh m1("arm1.x");									//the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
-//	static mesh m2("arm2.x");									//You can keep adding max of 8 mesh files.
-//	static mesh m3("arm3.x");
 
 // TO-DO:	Change Background and set it to the proper distance
 // TO-DO2:	Make a "person.x" 
-// TO-DO3:	Use "person.x" to switch first person and third person views
 
 	// initalization section
 	if(!init) {
@@ -143,7 +149,6 @@ void draw_3D_graphics()
 	else
 	{
 		double eye_point[3 + 1] = { -1.0, pers1.Px, pers1.Py, pers1.Pz };		//First Person
-//		double lookat_point[3 + 1] = { -1.0, arm3.Px + arm3.length/3*cos(arm3.pitch)*cos(arm1.yaw), arm3.Py + arm3.length/3*cos(arm3.pitch)*sin(arm1.yaw), arm3.Pz+arm3.length/3*sin(-arm3.pitch) };
 		double lookat_point[3 + 1] = { -1.0, end_effector.Px/2, end_effector.Py/2, end_effector.Pz/2 };
 		double up_dir[3 + 1] = { -1.0, 0.0, 0.0, 1.0 };				
 		double fov = PI/2;										
@@ -154,7 +159,7 @@ void draw_3D_graphics()
 	//Axes in meters (x = red, y = green, z = blue)
 	draw_XYZ(3.0);
 
-	//Should we use high_resolution_time()?
+	//Should we use high_resolution_time()??
 	t =		high_resolution_time() - t0;						//Time since the program started (s)
 	T =		t - tp;												//Calculate dt frame or period
 	fps =	1 / T;												//Frame per second
@@ -184,33 +189,9 @@ void draw_3D_graphics()
 	checkPickup(end_effector, obj1);
 	checkPickup(end_effector, obj2);
 
-//TO-DO: Make all object part of a dynamic array (See week 9 - graphics)
+//TO-DO:	Make all object part of a dynamic array (See week 9 - graphics)
+//TO-DO2:	Replace checkPickups with world instead of individual objects 
 	checkPickup(end_effector, pers1);
-
-
-	//Arm 1 positions
-//	arm1.Px =	0.0;
-//	arm1.Py =	0.0;
-//	arm1.Pz =	0.0;
-//	yaw =	0.0;											//Yaw is updated by simulation
-//	arm1.pitch = 0.0;
-//	arm1.roll =	PI / 2;
-
-	//Arm 2 positions
-//	arm2.Px =	0.0;
-//	arm2.Py =	0.0;
-//	arm2.Pz =	16.5;										//L base ~ 16.5
-	arm2.yaw =  arm1.yaw;
-//	pitch2 = PI/12 - PI/6;									//Pitch2 is updated by simulation
-//	arm2.roll = PI/2;
-
-	//For arm m3
-	arm3.Px =	16.5 * cos(arm2.pitch) * cos(arm1.yaw);
-	arm3.Py =	16.5 * cos(arm2.pitch) * sin(arm1.yaw);
-	arm3.Pz =	16.5 - 16.5 * sin(arm2.pitch);				//L Arm ~ 16.5; negative is upwards again due to pitch
-	arm3.yaw =	arm1.yaw;
-//	pitch3 = PI/12;											//Pitch3 is updated by simulation
-//	arm3.roll = PI/2;
 
 //TO-DO:	Add Collision detection to stop movements (arms to arms & arms to floor)
 //TO-DO2:	Add another mesh for "hand" or "magnet" to "grab" objects
@@ -223,9 +204,11 @@ void draw_3D_graphics()
 	arm1.draw();
 	arm2.draw();
 	arm3.draw();
-	
+
 	//Draw Background
 //	bg.draw(Bgx, Bgy, Bgz, Bgyaw, Bgpitch, Bgroll);
+//	bg.draw();
+//	floor.draw();
 
 	//Draw Objects
 	obj1.draw();
