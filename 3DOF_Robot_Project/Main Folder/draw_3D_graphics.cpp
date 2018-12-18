@@ -57,12 +57,28 @@ ofstream fout("debug.csv");
 void draw_3D_graphics()
 {
 	//Initialization for each mesh
-	static double Px, Py, Pz, pitch, yaw, roll;
-	static double Px2, Py2, Pz2, pitch2, yaw2, roll2;
-	static double Px3, Py3, Pz3, pitch3, yaw3, roll3;
-	static double Bgx, Bgy, Bgz, Bgpitch, Bgyaw, Bgroll;
-	static double Pxobj1, Pyobj1, Pzobj1, pitchobj1, yawobj1, rollobj1;
-	static double Pxobj2, Pyobj2, Pzobj2, pitchobj2, yawobj2, rollobj2;
+	static mesh m1("arm1.x");
+	static mesh m2("arm2.x");
+	static mesh m3("arm3.x");
+	static mesh objm1("plane.x");
+	static mesh objm2("car.x");
+	static mesh objm3("car.x");
+	static mesh persm1("car.x");
+//	static mesh bg("background.x");
+
+	//Initialization for arm and object objects
+	static Arm arm1(16.5, 10.0, &m1, 0.0, 0.0, 0.0, 0.0, 0.0, PI / 2);
+	static Arm arm2(16.5, 10.0, &m2, 0.0, 0.0, 16.5, -PI/6, arm1.yaw, PI / 2);
+	static Arm arm3(21.0, 10.0, &m3, 0.0, 0.0, 0.0, PI/6, 0.0, PI / 2);
+//	static ObjectWorld w1(1, &objm1, 1, &objm2);
+	static Object obj1(5.0, &objm1, 30.0, 0.0, 30.0, 0.0, 0.0, 0.0);
+	static Object obj2(5.0, &objm2, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+	static Object pers1(5.0, &persm1, 20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+	static Body end_effector(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	
+	end_effector.Px = arm3.Px + arm3.length * cos(arm3.pitch)*cos(arm1.yaw);
+	end_effector.Py = arm3.Py + arm3.length * cos(arm3.pitch)*sin(arm1.yaw);
+	end_effector.Pz = arm3.Pz + arm3.length * sin(-arm3.pitch);
 	static int init = 0;
 
 //TO-DO: Make a Class and an object for all of these
@@ -72,12 +88,9 @@ void draw_3D_graphics()
 
 	static double T, fps, tp, dt, dt2;							// dt used for sim stepping; dt2 used to move arm
 
-	static mesh m1("arm1.x");									//the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
-	static mesh m2("arm2.x");									//You can keep adding max of 8 mesh files.
-	static mesh m3("arm3.x");
-	static mesh bg("background.x");
-	static mesh obj1("plane.x");
-	static mesh obj2("car.x");
+//	static mesh m1("arm1.x");									//the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
+//	static mesh m2("arm2.x");									//You can keep adding max of 8 mesh files.
+//	static mesh m3("arm3.x");
 
 // TO-DO:	Change Background and set it to the proper distance
 // TO-DO2:	Make a "person.x" 
@@ -94,30 +107,49 @@ void draw_3D_graphics()
 		// you can make it a static local variable
 		// and the constructor will only get called (along with 
 		// new) once
-		pitch2 =	0.0;							//PI/19 is added for neutral position, PI/6 is 30 degrees upwards
-		pitch3 =	0.0;							//-PI/12 is added for neutral position, PI/6 is 30 degrees downwards
-		yaw =		0.0;
-		Bgx =		-200.0;
-		Bgy =		-200.0; 
-		Bgz =		0.0; 
-		Bgpitch =	0.0; 
-		Bgyaw =		0.0;
-		Bgroll =	0.0;
+//		pitch2 =	0.0;							//PI/19 is added for neutral position, PI/6 is 30 degrees upwards
+//		pitch3 =	0.0;							//-PI/12 is added for neutral position, PI/6 is 30 degrees downwards
+//		yaw =		0.0;
+//		Bgx =		-200.0;
+//		Bgy =		-200.0; 
+//		Bgz =		0.0; 
+//		Bgpitch =	0.0; 
+//		Bgyaw =		0.0;
+//		Bgroll =	0.0;
 	
 //TO-DO: Possibly use a constructor (overloaded?) to initialize these
 
 		t0 = high_resolution_time();							// initial clock time (s)
 		tp = 0.0;												// previous time
-
 		init = 1;
 	}
 
-	double eye_point[3 + 1] =	 { -1.0, 50.0, 50.0, 30.0 };	//Components of eye location
-	double lookat_point[3 + 1] = { -1.0, 0.0, 0.0, 20.0 };		//Components of look at point
-	double up_dir[3 + 1] =		 { -1.0, 0.0, 0.0, 1.0 };		//Components of up directioni
-	double fov =				 PI / 4;						//Field of view (default: 45deg)
+	static bool third_POV = true;
 
-	set_view(eye_point,lookat_point,up_dir,fov);
+	if (KEY(0x56))
+	{
+		third_POV = !third_POV;									//Toggle grab/not grab
+		Sleep(200);
+	}
+		
+	if (third_POV)
+	{	
+		double eye_point[3 + 1] = { -1.0, 50.0, 50.0, 30.0 };		//Third Person
+		double lookat_point[3 + 1] = { -1.0, 0.0, 0.0, 20.0 };		
+		double up_dir[3 + 1] = { -1.0, 0.0, 0.0, 1.0 };				
+		double fov = PI / 4;										
+		set_view(eye_point, lookat_point, up_dir, fov);
+	}
+	else
+	{
+		double eye_point[3 + 1] = { -1.0, pers1.Px, pers1.Py, pers1.Pz };		//First Person
+//		double lookat_point[3 + 1] = { -1.0, arm3.Px + arm3.length/3*cos(arm3.pitch)*cos(arm1.yaw), arm3.Py + arm3.length/3*cos(arm3.pitch)*sin(arm1.yaw), arm3.Pz+arm3.length/3*sin(-arm3.pitch) };
+		double lookat_point[3 + 1] = { -1.0, end_effector.Px/2, end_effector.Py/2, end_effector.Pz/2 };
+		double up_dir[3 + 1] = { -1.0, 0.0, 0.0, 1.0 };				
+		double fov = PI/2;										
+		set_view(eye_point, lookat_point, up_dir, fov);
+	}
+
 
 	//Axes in meters (x = red, y = green, z = blue)
 	draw_XYZ(3.0);
@@ -132,102 +164,73 @@ void draw_3D_graphics()
 
 	//Start of Simulation
 	dt = 0.00003;
-	for (int i = 0; i < 100; i++) sim_step(dt, yaw, pitch2, pitch3); // fast and stable
+	for (int i = 0; i < 100; i++) sim_step(dt, arm1.yaw, arm2.pitch, arm3.pitch); // fast and stable
 //	/\/\/\/\/\/\ - NEED THIS FOR THE PHYSICS/MATH - /\/\/\/\/\/\
 
-	//Set Position based on simulations
-
-	//Pick-up object 1 position
-	Pxobj1 =	30.0;
-	Pyobj1 =	0.0;
-	Pzobj1 =	30.0;
-	pitchobj1 = 0.0;
-	yawobj1 =	0.0;
-	rollobj1 =	0.0;
-
-	//Pick-up object 2 position
-	Pxobj2 =	-25.0;
-	Pyobj2 =	15.0;
-	Pzobj2 =	0.0;
-	pitchobj2 = 0.0;
-	yawobj2 =	0.0;
-	rollobj2 =	PI / 2;
-
 	//Point to object 1, object 2
-	dt2 = 0.004;
-	double objTheta[3 + 1] = { 0.0 };
+	dt2 = 0.002;
+/*	double objTheta[3 + 1] = { 0.0 };
 	if (KEY(0x31))
 	{
-		locateObject(objTheta, Pxobj1, Pyobj1, Pzobj1);		//Finds the goal (Object)
-		pointAtObject(dt2, objTheta, yaw, pitch2, pitch3);	//Moves towards the goal in increments
+		locateObject(objTheta, obj1.Px, obj1.Py, obj1.Pz);		//Finds the goal (Object)
+		pointAtObject(dt2, objTheta, arm1.yaw, arm2.pitch, arm3.pitch);	//Moves towards the goal in increments
 	}
 	if (KEY(0x32))
 	{
-		locateObject(objTheta, Pxobj2, Pyobj2, Pzobj2);
-		pointAtObject(dt2, objTheta, yaw, pitch2, pitch3);
+		locateObject(objTheta, obj2.Px, obj2.Py, obj2.Pz);
+		pointAtObject(dt2, objTheta, arm1.yaw, arm2.pitch, arm3.pitch);
 	}
+*/
+	checkPickup(end_effector, obj1);
+	checkPickup(end_effector, obj2);
 
-//TO-DO: Make it move to the positioning instead of instantly pointing at it
+//TO-DO: Make all object part of a dynamic array (See week 9 - graphics)
+	checkPickup(end_effector, pers1);
+
 
 	//Arm 1 positions
-	Px =	0.0;
-	Py =	0.0;
-	Pz =	0.0;
+//	arm1.Px =	0.0;
+//	arm1.Py =	0.0;
+//	arm1.Pz =	0.0;
 //	yaw =	0.0;											//Yaw is updated by simulation
-	pitch = 0.0;
-	roll =	PI / 2;
+//	arm1.pitch = 0.0;
+//	arm1.roll =	PI / 2;
 
 	//Arm 2 positions
-	Px2 =	0.0;
-	Py2 =	0.0;
-	Pz2 =	16.5;											//L base ~ 16.5
-	yaw2 =  yaw;
+//	arm2.Px =	0.0;
+//	arm2.Py =	0.0;
+//	arm2.Pz =	16.5;										//L base ~ 16.5
+	arm2.yaw =  arm1.yaw;
 //	pitch2 = PI/12 - PI/6;									//Pitch2 is updated by simulation
-	roll2 = PI/2;
+//	arm2.roll = PI/2;
 
 	//For arm m3
-	Px3 =	16.5 * cos(pitch2) * cos(yaw);
-	Py3 =	16.5 * cos(pitch2) * sin(yaw);
-	Pz3 = 16.5 - 16.5 * sin(pitch2);						//L Arm ~ 16.5; negative is upwards again due to pitch
-	yaw3 =	yaw;
+	arm3.Px =	16.5 * cos(arm2.pitch) * cos(arm1.yaw);
+	arm3.Py =	16.5 * cos(arm2.pitch) * sin(arm1.yaw);
+	arm3.Pz =	16.5 - 16.5 * sin(arm2.pitch);				//L Arm ~ 16.5; negative is upwards again due to pitch
+	arm3.yaw =	arm1.yaw;
 //	pitch3 = PI/12;											//Pitch3 is updated by simulation
-	roll3 = PI/2;
+//	arm3.roll = PI/2;
 
 //TO-DO:	Add Collision detection to stop movements (arms to arms & arms to floor)
 //TO-DO2:	Add another mesh for "hand" or "magnet" to "grab" objects
 //TO-DO3:	Add another mesh object to be grabbed by the arm (a crate or whatever)
 //TO-DO4:	Add grabbing mechanism (if (touching object && press a button) stick object to arm)
 //			(if (object stuck to arm && press a button) release object, object falls to ground)
-
-	//Keyboard IN
-	if (KEY(VK_UP))		pitch3 -= PI*dt2 / 2;
-	if (KEY(VK_DOWN))	pitch3 += PI*dt2 / 2;
-	if (KEY(VK_RIGHT))	yaw += PI*dt2/2;
-	if (KEY(VK_LEFT))	yaw -= PI*dt2 / 2;
-	if (KEY(0x58))
-	{
-						pitch2 -= PI*dt2 / 2;				//KEY: z
-						pitch3 -= PI*dt2 / 2;				//pitch3 so the arm keeps its position
-	}
-	if (KEY(0x5A))
-	{
-						pitch2 += PI*dt2 / 2;				//KEY: x
-						pitch3 += PI*dt2 / 2;				//pitch3 - same as above
-	}
-
-//TO-DO:	Change the Key inputs to activate force instead of position
-//TO-DO2:	Maybe add a button to stabilize (stop all movement and keep "gravity" pull the arms down)
+//TO-DO5:	Maybe add a button to stabilize (stop all movement and keep "gravity" pull the arms down)
 
 	//Draw 3DOF Robot
-	m1.draw(Px, Py, Pz, yaw, pitch, roll);
-	m2.draw(Px2, Py2, Pz2, yaw2, pitch2, roll2); 
-	m3.draw(Px3, Py3, Pz3, yaw3, pitch3, roll3); 
-
+	arm1.draw();
+	arm2.draw();
+	arm3.draw();
+	
 	//Draw Background
-	bg.draw(Bgx, Bgy, Bgz, Bgyaw, Bgpitch, Bgroll);
+//	bg.draw(Bgx, Bgy, Bgz, Bgyaw, Bgpitch, Bgroll);
 
 	//Draw Objects
-	obj1.draw(Pxobj1, Pyobj1, Pzobj1, yawobj1, pitchobj1, rollobj1);
-	obj2.draw(Pxobj2, Pyobj2, Pzobj2, yawobj2, pitchobj2, rollobj2);
+	obj1.draw();
+	obj2.draw();
+//	w1.draw();
+	pers1.draw();
 }
 
