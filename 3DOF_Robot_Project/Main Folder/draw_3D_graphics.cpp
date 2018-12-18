@@ -27,6 +27,8 @@ Formatted for full screen
 #include "3D_graphics.h"	// for DirectX 3D graphics
 #include "my_project.h"
 
+#include "graphic_setup.h"
+
 const double PI = atan(1) * 4;
 
 // 3D graphics window size in pixels
@@ -67,17 +69,9 @@ void draw_3D_graphics()
 
 //TO-DO: Make a Class and an object for all of these
 
-	static double t;											// clock time from t0
-	static double t0;											// initial clock time
-
 	static double T, fps, tp, dt, dt2;							// dt used for sim stepping; dt2 used to move arm
 
-	static mesh m1("arm1.x");								//the mesh here gets constructed only once since  its a static local variable, so no need to put in the initialization section 
-	static mesh m2("arm2.x");									//You can keep adding max of 8 mesh files.
-	static mesh m3("arm3.x");
-	static mesh bg("background.x");
-	static mesh obj1("plane.x");
-	static mesh obj2("car.x");
+	static simulation sim;
 
 // TO-DO:	Change Background and set it to the proper distance
 // TO-DO2:	Make a "person.x" 
@@ -122,7 +116,6 @@ void draw_3D_graphics()
 	draw_XYZ(3.0);
 
 	//Should we use high_resolution_time()?
-	t =		high_resolution_time() - t0;						//Time since the program started (s)
 	T =		t - tp;												//Calculate dt frame or period
 	fps =	1 / T;												//Frame per second
 	tp =	t;													//Update previous time
