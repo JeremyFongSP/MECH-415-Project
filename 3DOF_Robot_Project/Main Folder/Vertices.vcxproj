@@ -14,6 +14,7 @@
     <ClCompile Include="draw_3D_graphics.cpp" />
     <ClCompile Include="graphic_setup.cpp" />
     <ClCompile Include="my_project.cpp" />
+    <ClCompile Include="ran.cpp" />
     <ClCompile Include="rotation.cpp" />
     <ClCompile Include="timer.cpp" />
   </ItemGroup>
@@ -22,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graphic_setup.h" />
+    <ClInclude Include="ran.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3A68081D-E8F9-4523-9436-530DE9E5530B}</ProjectGuid>
