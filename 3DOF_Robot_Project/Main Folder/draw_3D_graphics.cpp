@@ -215,9 +215,22 @@ void draw_3D_graphics()
 
 //TO-DO:	Figure out if we can put these inputs in the Arm class somehow
 
+	//Locate Objects with Keystrokes
+	static double ObjTheta[3 + 1];
+	if (KEY(0x31))
+	{
+		locateObject(ObjTheta, obj1.Px, obj1.Py, obj1.Pz);
+		text_xy("Located Object at: ", 700.0, 250.0, 14);
+		text_xy(obj1.Px, 900, 250, 14);
+		text_xy(obj1.Py, 970.0, 250.0, 14);
+		text_xy(obj1.Pz, 1040.0, 250.0, 14);
+	}
+	if (KEY(0x32))	locateObject(ObjTheta, obj2.Px, obj2.Py, obj2.Pz);
+	if (KEY(0x33))	locateObject(ObjTheta, pers1.Px, pers1.Py, pers1.Pz);
+
 	//Start of Simulation
 	dt = 0.00003;
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 300; i++)
 	{
 		sim_step(dt, arm1.yaw, arm2.pitch, arm3.pitch);
 		obj1.sim_fall(dt);
