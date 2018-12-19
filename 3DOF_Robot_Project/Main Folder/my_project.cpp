@@ -137,7 +137,7 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 		init = 1;
 	}
 
-	calculate_inputs(xtemp,t,N,u,M);					// calculate u
+	calculate_inputs(xtemp,t,N,u);						// calculate u
 	calculate_Xd(xtemp,t,N,u,M,xd);						// calculate x-derivatives
 
 	for(i=1;i<=N;i++) xtemp[i] = xtemp[i] + xd[i]*dt;	// Euler step
@@ -150,11 +150,12 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 	pitch3 =	xtemp[3] + xtemp[2];					// Pitch Second Arm Position
 }
 
-void calculate_inputs(const double X[], double t, int N, double U[], int M)
+void calculate_inputs(const double X[], double t, int N, double U[])
 {
 	double F[3 + 1] = { 0.0 };							// force matrix
 	double fs = 2e-4;									// force step
-	double friction_coef = 1e-4;
+	double friction_coef = 1e-4;						// force friction depends on current velocity
+	static double ObjTheta[3 + 1] = { 0.0 };
 
 	// unpack
 	double theta1 = X[1];
@@ -164,12 +165,14 @@ void calculate_inputs(const double X[], double t, int N, double U[], int M)
 //	double vheta2 = X[5];
 //	double vheta3 = X[6];
 
+	//Keystrokes: W - A - S - D - Q - E
 	if (KEY(0x44))	F[1] = fs;
 	if (KEY(0x41))	F[1] = -fs;
 	if (KEY(0x53))	F[2] = fs;
 	if (KEY(0x57))	F[2] = -fs;
 	if (KEY(0x51))	F[3] = fs;
 	if (KEY(0x45))	F[3] = -fs;
+
 
 //TO-DO: Add a stop + bounce back if arm goes too far (kind of like collision)
 
@@ -352,7 +355,6 @@ void locateObject(double objThetas[3+1], double x, double y, double z)
 	r			 =	sqrt(x*x + y*y);
 	D			 =	sqrt((ztemp - l[1])*(z - l[1]) + r * r);
 	objThetas[3] =	PI - acos((D * D - l[3] * l[3] - l[2] * l[2]) / -(2 * l[2] * l[3]));
-//	objThetas[3] =  acos((((z - l[1])*(z - l[1]) + x*x + y*y - l[3] * l[3] - l[2] * l[2])) / (2 * l[2] * l[3]));
 	objThetas[2] =	atan2(-(ztemp - l[1]), r) - atan2(l[3] * sin(objThetas[3]), l[2] + l[3] * cos(objThetas[3]));
 
 //TO-DO: Make classes so that we can just pass objects instead of inputs
@@ -427,7 +429,7 @@ void resolveCollision(Object & one, Object & two)
 		{
 			two.Px += ((ran(s) * 4.0) - 2.0);
 			two.Py += ((ran(s) * 4.0) - 2.0);
-		} 
+		}
 		else if (two.is_grabbed)
 		{
 			one.Px += ((ran(s) * 4.0) - 2.0);
@@ -439,8 +441,9 @@ void resolveCollision(Object & one, Object & two)
 			two.Py += ((ran(s) * 4.0) - 2.0);
 			one.Px += ((ran(s) * 4.0) - 2.0);
 			one.Py += ((ran(s) * 4.0) - 2.0);
-	}
-//TO-DO:	Weird random (is it actually random?)
+		}
+		//TO-DO:	Weird random (is it actually random?)
 
+	}
 }
 //---------------------------------------------- End Functions -----------------------------------------------------------

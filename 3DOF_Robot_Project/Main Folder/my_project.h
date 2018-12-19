@@ -47,7 +47,7 @@ public:
 
 
 // U is and output so we don't use a const modifier (ie full call by reference)
-void calculate_inputs(const double X[], double t, int N, double U[], int M);
+void calculate_inputs(const double X[], double t, int N, double U[]);
 // note U is and input for this function hence the const modifier
 void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[]);
 void sim_step(double dt, double &yaw, double &pitch2, double &pitch3);
