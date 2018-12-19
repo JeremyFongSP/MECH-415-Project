@@ -60,6 +60,7 @@ void draw_3D_graphics()
 	static mesh m1("arm1.x");
 	static mesh m2("arm2.x");
 	static mesh m3("arm3.x");
+	static mesh mgrabber("arm_grabber.x");
 	static mesh objm1("plane.x");
 	static mesh objm2("car.x");
 	static mesh objm3("car.x");			//Change to another object to pick up
@@ -72,6 +73,7 @@ void draw_3D_graphics()
 	static Arm arm1(16.5, 10.0, &m1, 0.0, 0.0, 0.0, 0.0, 0.0, PI / 2);				//You can keep adding max of 8 mesh files.
 	static Arm arm2(16.5, 10.0, &m2, 0.0, 0.0, 16.5, -PI/6, arm1.yaw, PI / 2);
 	static Arm arm3(21.0, 10.0, &m3, 0.0, 0.0, 0.0, PI/6, 0.0, PI / 2);
+	static Arm grabber(22.0, 10.0, &mgrabber, 0.0, 0.0, 0.0, PI / 6, 0.0, PI / 2);
 //	static ObjectWorld w1(1, &objm1, 1, &objm2);
 	static Object obj1(3.0, &objm1, 30.0, 0.0, 30.0, 0.0, 0.0, 0.0);
 	static Object obj2(3.0, &objm2, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
@@ -204,6 +206,7 @@ void draw_3D_graphics()
 	arm1.draw();
 	arm2.draw();
 	arm3.draw();
+	grabber.draw();
 
 	//Draw Background
 //	bg.draw(Bgx, Bgy, Bgz, Bgyaw, Bgpitch, Bgroll);
