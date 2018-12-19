@@ -66,7 +66,10 @@ void draw_3D_graphics()
 	static mesh persm1("car.x");		//Change to Person
 //	static mesh bgm("starneb2.jpg");	//See X_file_library Week 7
 //	static mesh floorm("track1.x");
-	static mesh end_em("");
+	static mesh end_em("arm_grabber.x");
+	end_em.Roll_0 = PI / 2;
+	end_em.X_0 = -5.5;
+
 
 	//Initialization for arm and object objects
 	static Arm arm1(16.5, 10.0, &m1, 0.0, 0.0, 0.0, 0.0, 0.0, PI / 2);				//You can keep adding max of 8 mesh files.
@@ -83,9 +86,9 @@ void draw_3D_graphics()
 //TO-DO: Group all objects into an array so we can use for-loops to cycle through them when we need (pickup, fall, draw, ...)
 
 	//Set End_effector Position
-	end_effector.Px = arm3.Px + arm3.length * cos(arm3.pitch)*cos(arm1.yaw);
-	end_effector.Py = arm3.Py + arm3.length * cos(arm3.pitch)*sin(arm1.yaw);
-	end_effector.Pz = arm3.Pz + arm3.length * sin(-arm3.pitch);
+	end_effector.Px = arm3.Px + (arm3.length+5) * cos(arm3.pitch)*cos(arm1.yaw);
+	end_effector.Py = arm3.Py + (arm3.length+5) * cos(arm3.pitch)*sin(arm1.yaw);
+	end_effector.Pz = arm3.Pz + (arm3.length+5) * sin(-arm3.pitch);
 	end_effector.pitch = arm3.pitch;
 	end_effector.yaw = arm1.yaw;
 
@@ -215,6 +218,7 @@ void draw_3D_graphics()
 	arm1.draw();
 	arm2.draw();
 	arm3.draw();
+	end_effector.draw();
 
 	//Draw Background
 //	bg.draw();
