@@ -11,6 +11,7 @@
 #include "3D_graphics.h"
 #include "my_project.h"
 #include "ran.h"
+#include "timer.h"
 
 using namespace std;
 
@@ -24,6 +25,7 @@ ofstream fout_myproject("My_project_Debug.csv");
 //---------------------------------------------- End Global -----------------------------------------------------------
 
 //------------------------------------------------ Classes -------------------------------------------------------------
+
 
 Body::Body(mesh *Pm, double Px, double Py, double Pz, double pitch, double yaw, double roll)
 {
@@ -47,6 +49,7 @@ Arm::Arm(double length, double mass, mesh *Pm, double x, double y, double z, dou
 	this->mass = mass;
 }
 
+
 int Object::N;	//Initialize static N for object count
 
 Object::Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll) : Body(Pm, x, y, z, pitch, yaw, roll)
@@ -59,6 +62,62 @@ void Object::sim_fall(double dt)
 {
 	if (Pz > 1e-4)	Pz -= g*dt;
 //	checkGoal();							//TO-DO2:	if reaches goal, add 1 point
+}
+
+fish::fish(int nb)
+{
+	int i;
+	static mesh fishy("fish1.x");
+	this->nb = nb;
+
+	fishy.Yaw_0 = 3.14159 / 2;
+	fishy.Pitch_0 = 0.0;
+	fishy.Roll_0 = 3.14159 / 2;
+
+	for (i = 1; i <= nb; i++)
+	{
+		fishes[i] = new Object(3.0, &fishy, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+	}
+}
+
+fish::~fish()
+{
+	int i;
+	for (i = 1; i <= nb; i++)
+	{
+		if (fishes[i] == nullptr)
+			exit(1);
+		else
+		{
+			delete fishes[i];
+			fishes[i] = nullptr;
+		}
+	}
+}
+
+void fish::draw()
+{
+	int i;
+	for (i = 1; i <= nb; i++) {
+		fishes[i]->draw();
+	}
+}
+
+void fish::input()
+{
+	int i;
+	t0 = high_resolution_time();
+	t = high_resolution_time() - t0;
+	long int s = 0;
+
+	for (i = 1; i <= nb; i++)
+	{
+		fishes[i]->Px += ran(s)*t;
+		fishes[i]->Py += PI*t / 2;
+		fishes[i]->Pz = 5.0;
+		s--;
+	}
+	// Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll)
 }
 
 ObjectWorld::ObjectWorld(int N, mesh *Pm1, int M, mesh *Pm2)
@@ -394,6 +453,8 @@ void checkPickup(Body end_effector, Object & obj)
 	bool in_rangeZ = false;
 	static bool grabbing = false;
 	if (KEY(0x52)) grabbing = false;
+
+
 
 	if (end_effector.Px < obj.Px + obj.radius && end_effector.Px > obj.Px - obj.radius) in_rangeX = true;
 	if (end_effector.Py < obj.Py + obj.radius && end_effector.Py > obj.Py - obj.radius) in_rangeY = true;

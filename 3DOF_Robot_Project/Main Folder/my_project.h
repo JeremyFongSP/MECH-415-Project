@@ -17,6 +17,7 @@ public:
 	double mass;
 
 	Arm(double length, double mass, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll);
+
 };
 
 class Object : public Body
@@ -29,6 +30,20 @@ public:
 
 	Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll);
 	void sim_fall(double dt);		//Objects drawn to the ground
+};
+
+class fish
+{
+public:
+	int nb;
+	Object *fishes[10];
+	double t0, t;
+
+	fish(int nb);
+	~fish();
+
+	void draw();
+	void input();
 };
 
 class ObjectWorld		//For random objects generation
