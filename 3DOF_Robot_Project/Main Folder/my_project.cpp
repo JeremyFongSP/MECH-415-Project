@@ -10,6 +10,7 @@
 
 #include "3D_graphics.h"
 #include "my_project.h"
+#include "ran.h"
 
 using namespace std;
 
@@ -57,7 +58,7 @@ Object::Object(double radius, mesh *Pm, double x, double y, double z, double pit
 void Object::sim_fall(double dt)
 {
 	if (Pz > 1e-4)	Pz -= g*dt;
-//	checkForCollision();					//TO-DO: Make a function that checks for collision and stops the object from falling further
+//	checkGoal();							//TO-DO2:	if reaches goal, add 1 point
 }
 
 ObjectWorld::ObjectWorld(int N, mesh *Pm1, int M, mesh *Pm2)
@@ -163,12 +164,12 @@ void calculate_inputs(const double X[], double t, int N, double U[], int M)
 //	double vheta2 = X[5];
 //	double vheta3 = X[6];
 
-	if (KEY(0x44))	F[1] = fs;
-	if (KEY(0x41))	F[1] = -fs;
-	if (KEY(0x53))	F[2] = fs;
-	if (KEY(0x57))	F[2] = -fs;
-	if (KEY(0x51))	F[3] = fs;
-	if (KEY(0x45))	F[3] = -fs;
+	if (KEY(VK_RIGHT))	F[1] = fs; // d - arm1 move right
+	if (KEY(VK_LEFT))	F[1] = -fs; // a - arm1 move left
+	if (KEY(VK_DOWN) && !(KEY(0x41)))	F[2] = fs; // s - arm2 move up
+	if (KEY(VK_UP) && !(KEY(0x41)))	F[2] = -fs; // w - arm2 move down
+	if (KEY(VK_DOWN) && KEY(0x41))	F[3] = fs; // q - arm3 move down
+	if (KEY(VK_UP) && KEY(0x41))	F[3] = -fs; // e - arm 3 move up
 
 //TO-DO: Add a stop + bounce back if arm goes too far (kind of like collision)
 
@@ -341,16 +342,6 @@ void ComputeInvertedMatrix(double Ma[3 + 1][3 + 1], double det, double Minv[3 + 
 	*/
 }
 
-void stabilize(double X[], double m[], double l[], double theta1, double theta2, double theta3, double U[])
-{
-	U[1] = 0.0;
-	U[2] = m[2] * g * l[2] / 2 * cos(theta2) + m[3] * g * (l[2] * cos(theta2) + l[3] / 2 * cos(theta2 + theta3));
-	U[3] = m[3] * g * l[3] / 2 * cos(theta2 + theta3);
-	X[4] = 0.0;
-	X[5] = 0.0;
-	X[6] = 0.0;
-}
-
 void locateObject(double objThetas[3+1], double x, double y, double z)
 {
 	//Inverse Kinematics
@@ -391,6 +382,8 @@ void checkPickup(Body end_effector, Object & obj)
 	bool in_rangeX = false;
 	bool in_rangeY = false;
 	bool in_rangeZ = false;
+	static bool grabbing = false;
+	if (KEY(0x52)) grabbing = false;
 
 	if (end_effector.Px < obj.Px + obj.radius && end_effector.Px > obj.Px - obj.radius) in_rangeX = true;
 	if (end_effector.Py < obj.Py + obj.radius && end_effector.Py > obj.Py - obj.radius) in_rangeY = true;
@@ -398,11 +391,6 @@ void checkPickup(Body end_effector, Object & obj)
 
 	if (in_rangeX && in_rangeY && in_rangeZ)
 	{
-		static bool grabbing = false;
-		static bool has_obj = false;
-		static double pitch_0 = obj.pitch;
-		static double roll_0 = obj.roll;
-
 		if (KEY(0x47))	{
 			grabbing = !grabbing;		//Toggle grab/not grab
 			obj.is_grabbed = !obj.is_grabbed;
@@ -414,45 +402,49 @@ void checkPickup(Body end_effector, Object & obj)
 			obj.Px = end_effector.Px;
 			obj.Py = end_effector.Py;
 			obj.Pz = end_effector.Pz;
-			obj.pitch = pitch_0 + end_effector.pitch;
+			obj.pitch = end_effector.pitch;
 			obj.yaw = end_effector.yaw;
-			obj.roll = roll_0 + end_effector.roll;
 		}
 	}
-//TO-DO:	Keep orientation of car when it is first grabbed
-//TO-DO2:	Remove weird pitching when car arm3 pitches
 }
-/*
-void checkPickup(Body end_effector, ObjectWorld w1)
+
+void resolveCollision(Object & one, Object & two)
 {
 	bool in_rangeX = false;
 	bool in_rangeY = false;
 	bool in_rangeZ = false;
+	long int s = -3;
+	double r = 1;
 
-	for (int i = 1; i <= w1.N; i++)
-	{
-		if (end_effector.Px < w1.Pn[i]->Px + w1.Pn[i]->radius && end_effector.Px > w1.Pn[i]->Px - w1.Pn[i]->radius) in_rangeX = true;
-		if (end_effector.Py < w1.Pn[i]->Py + w1.Pn[i]->radius && end_effector.Py > w1.Pn[i]->Py - w1.Pn[i]->radius) in_rangeY = true;
-		if (end_effector.Pz < w1.Pn[i]->Pz + w1.Pn[i]->radius && end_effector.Pz > w1.Pn[i]->Pz - w1.Pn[i]->radius) in_rangeZ = true;
-	}
+	if (one.Px - (one.radius + r) < two.Px + (two.radius + r) && one.Px + (one.radius + r) > two.Px - (two.radius + r)) in_rangeX = true;
+	if (one.Py - (one.radius + r) < two.Py + (two.radius + r) && one.Py + (one.radius + r) > two.Py - (two.radius + r)) in_rangeY = true;
+	if (one.Pz - (one.radius + r) < two.Pz + (two.radius + r) && one.Pz + (one.radius + r) > two.Pz - (two.radius + r)) in_rangeZ = true;
+
+
 	if (in_rangeX && in_rangeY && in_rangeZ)
 	{
-		static bool grabbing = false;
-		static bool has_obj = false;
-
-		if (KEY(0x47))	{
-			grabbing = !grabbing;		//Toggle grab/not grab
-			obj.is_grabbed = !obj.is_grabbed;
-			Sleep(200);
-		}
-
-		if (grabbing && obj.is_grabbed)
+		if (one.is_grabbed)
 		{
-			obj.Px = end_effector.Px;
-			obj.Py = end_effector.Py;
-			obj.Pz = end_effector.Pz;
+			two.Px += ((ran(s) * 4.0) - 2.0);
+			two.Py += ((ran(s) * 4.0) - 2.0);
 		}
+		else if (two.is_grabbed)
+		{
+			one.Px += ((ran(s) * 4.0) - 2.0);
+			one.Py += ((ran(s) * 4.0) - 2.0);
+		}
+		else
+		{
+			two.Px += ((ran(s) * 4.0) - 2.0);
+			two.Py += ((ran(s) * 4.0) - 2.0);
+			one.Px += ((ran(s) * 4.0) - 2.0);
+			one.Py += ((ran(s) * 4.0) - 2.0);
+		}
+		//TO-DO:	Weird random (is it actually random?)
 	}
 }
-*/
+
+void key_input(){
+
+}
 //---------------------------------------------- End Functions -----------------------------------------------------------

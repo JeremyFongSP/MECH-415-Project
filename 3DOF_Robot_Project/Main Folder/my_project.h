@@ -56,7 +56,8 @@ void ComputeGravityMatrix(double m[3 + 1], double x[3 + 1], double l[3 + 1], dou
 void ComputeCoriolisMatrix(double m[3 + 1], double x[3 + 1], double v[3 + 1], double l[3 + 1], double C[3 + 1]);
 void ComputeDeterminant(double Ma[3 + 1][3 + 1], double & det);
 void ComputeInvertedMatrix(double Ma[3 + 1][3 + 1], double det, double Minv[3 + 1][3 + 1]);
-void stabilize(double m[], double l[], double theta1, double theta2, double theta3, double U[]);
 void locateObject(double objThetas[3 + 1], double x, double y, double z);
 void pointAtObject(double dt, double objTheta[3 + 1], double & yaw, double & pitch2, double & pitch3);
 void checkPickup(Body End_Effector, Object & obj);
+void resolveCollision(Object & one, Object & two);
+void key_input();

@@ -26,6 +26,7 @@ Formatted for full screen
 #include "rotation.h"		// for computing rotation functions
 #include "3D_graphics.h"	// for DirectX 3D graphics
 #include "my_project.h"
+#include "ran.h"
 
 const double PI = atan(1) * 4;
 
@@ -52,7 +53,7 @@ extern unsigned char Key_input[256];
 using namespace std;
 
 // define a global file output stream after namespace
-ofstream fout("debug.csv");
+//ofstream fout("debug.csv");
 
 void draw_3D_graphics()
 {
@@ -60,16 +61,22 @@ void draw_3D_graphics()
 	static mesh m1("arm1.x");
 	static mesh m2("arm2.x");
 	static mesh m3("arm3.x");
-	static mesh objm1("underwater.x");
-
+	static mesh objm1("fish1.x");
 	static mesh objm2("car.x");
 	static mesh background("underwater.x");			//Change to another object to pick up
+
+//	static mesh objm2("car.x");
+	static mesh objm3("car.x");			//Change to another object to pick up
 	static mesh persm1("car.x");		//Change to Person
 //	static mesh bgm("starneb2.jpg");	//See X_file_library Week 7
 //	static mesh floorm("track1.x");
 	static mesh end_em("arm_grabber.x");
-	end_em.Roll_0 = PI / 2;
-	end_em.X_0 = -5.5;
+	static mesh goalm("fish1.x");
+	goalm.Scale = 1.0;
+	goalm.Roll_0 = PI / 2;
+	end_em.Roll_0 = PI / 2;				//Offset
+	end_em.X_0 = -5.5;					//Offset
+	persm1.Pitch_0 = 5* PI/ 2;
 
 
 	//Initialization for arm and object objects
@@ -77,11 +84,20 @@ void draw_3D_graphics()
 	static Arm arm2(16.5, 10.0, &m2, 0.0, 0.0, 16.5, -PI/6, arm1.yaw, PI / 2);
 	static Arm arm3(21.0, 10.0, &m3, 0.0, 0.0, 0.0, PI/6, 0.0, PI / 2);
 //	static ObjectWorld w1(1, &objm1, 1, &objm2);
-	static Object obj1(3.0, &objm1, 30.0, 0.0, 30.0, 0.0, 0.0, 0.0);
-	static Object obj2(3.0, &objm2, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
-	static Object pers1(3.0, &background, 30.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+
+	//static Object obj1(3.0, &objm1, 30.0, 0.0, 30.0, 0.0, 0.0, 0.0);
+	//static Object obj2(3.0, &objm2, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+	//static Object pers1(3.0, &background, 30.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
 //	static Body bg(&bgm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	static Body end_effector(&end_em, 0.0, 0.0, 0.0, 0.0, PI, PI/2);
+	//static Body end_effector(&end_em, 0.0, 0.0, 0.0, 0.0, PI, PI/2);
+
+	static Object obj1(3.0, &objm1, 30.0, -20.0, 30.0, 0.0, 0.0, PI / 2);
+	static Object obj2(3.0, &objm1, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+	static Object pers1(3.0, &persm1, 20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+//	static Body bg(&bgm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	static Body end_effector(&end_em, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+	static Body goal_truck(&goalm, -40.0, -20.0, 0.0, 0.0, 0.0, 0.0);
+
 //	static Body floor(&floorm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
 //TO-DO: Group all objects into an array so we can use for-loops to cycle through them when we need (pickup, fall, draw, ...)
@@ -99,6 +115,9 @@ void draw_3D_graphics()
 	arm3.Py = 16.5 * cos(arm2.pitch) * sin(arm1.yaw);
 	arm3.Pz = 16.5 - 16.5 * sin(arm2.pitch);
 	arm3.yaw = arm1.yaw;
+
+	//Person Positions
+	pers1.yaw = atan2(pers1.Py - end_effector.Py, pers1.Px - end_effector.Px);
 
 	static int init = 0;
 	static double t;											// clock time from t0
@@ -136,6 +155,26 @@ void draw_3D_graphics()
 		init = 1;
 	}
 
+	//On-Screen text
+	static double objects_in_goal = 0.0;
+	text_xy("Place the objects inside the truck!", 10.0, 10.0, 20);
+	text_xy("V = switch POV, G = Grab, R = Reset Objects", 10.0, 50.0, 20);
+	text_xy("play with arroy keys and press A with arroy to move the grabber arm", 10.0, 90.0, 20);
+	text_xy("Goal = 3", 10.0, 130.0, 20);
+	text_xy("Current =", 10.0, 170.0, 20);
+	text_xy("Hint: You are an object!", 1650.0, 1000.0, 10);
+	text_xy("Press 1 or 2 to auto zoom on objects", 1650.0, 1030.0, 10);
+	text_xy(objects_in_goal, 135.0, 130.0, 20);
+
+//TO-DO:	Reset
+
+	if (KEY(0x52))
+	{
+		obj1.Px = 30.0; obj1.Py = -20.0; obj1.Pz = 30.0; obj1.pitch = 0.0; obj1.yaw = 0.0; obj1.roll = PI /2; obj1.is_grabbed = false;
+		obj2.Px = -20.0; obj2.Py = 20.0; obj2.Pz = 0.0; obj2.pitch = 0.0; obj2.yaw = 0.0; obj2.roll = PI/2; obj2.is_grabbed = false;
+		pers1.Px = 20.0; pers1.Py = 20.0; pers1.Pz = 0.0; pers1.pitch = 0.0; pers1.yaw = 0.0; pers1.roll = PI/2; pers1.is_grabbed = false;
+	}
+
 	static bool third_POV = true;
 
 	if (KEY(0x56))
@@ -143,10 +182,10 @@ void draw_3D_graphics()
 		third_POV = !third_POV;									//Toggle view point
 		Sleep(200);
 	}
-		
+
 	if (third_POV)
 	{	
-		double eye_point[3 + 1] = { -1.0, 50.0, 50.0, 30.0 };		//Third Person
+		double eye_point[3 + 1] = { -1.0, 60.0, 60.0, 30.0 };		//Third Person
 		double lookat_point[3 + 1] = { -1.0, 0.0, 0.0, 20.0 };		
 		double up_dir[3 + 1] = { -1.0, 0.0, 0.0, 1.0 };				
 		double fov = PI / 4;										
@@ -171,7 +210,7 @@ void draw_3D_graphics()
 	fps =	1 / T;												//Frame per second
 	tp =	t;													//Update previous time
 	
-	fout << t << "," << T << "," << fps << "\n";
+//	fout << t << "," << T << "," << fps << "\n";
 
 
 //TO-DO:	Figure out if we can put these inputs in the Arm class somehow
@@ -186,6 +225,10 @@ void draw_3D_graphics()
 		pers1.sim_fall(dt);
 	}
 
+	resolveCollision(obj1, obj2);
+	resolveCollision(obj2, pers1);
+	resolveCollision(obj1, pers1);
+
 	//Point to object 1, object 2
 	dt2 = 0.002;
 /*	double objTheta[3 + 1] = { 0.0 };
@@ -199,8 +242,9 @@ void draw_3D_graphics()
 		locateObject(objTheta, obj2.Px, obj2.Py, obj2.Pz);
 		pointAtObject(dt2, objTheta, arm1.yaw, arm2.pitch, arm3.pitch);
 	}
-//TO-DO:	Change locate object to velocity input
 */
+//TO-DO:	Change locate object to velocity input
+
 	checkPickup(end_effector, obj1);
 	checkPickup(end_effector, obj2);
 
@@ -220,6 +264,7 @@ void draw_3D_graphics()
 	arm2.draw();
 	arm3.draw();
 	end_effector.draw();
+	goal_truck.draw();
 
 	//Draw Background
 //	bg.draw();
