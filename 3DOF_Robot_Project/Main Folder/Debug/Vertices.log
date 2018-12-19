@@ -1,4 +1,4 @@
-﻿Build started 12/18/2018 8:58:08 AM.
+﻿Build started 12/18/2018 11:48:29 PM.
      1>Project "C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Vertices.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\..\..\common /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _MBCS /Gm /EHsc /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt draw_3D_graphics.cpp
@@ -15,4 +15,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.02
+Time Elapsed 00:00:01.09

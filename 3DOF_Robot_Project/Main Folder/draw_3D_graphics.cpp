@@ -32,8 +32,8 @@ const double PI = atan(1) * 4;
 // 3D graphics window size in pixels
 int WIDTH_MIN = 0;
 int HEIGHT_MIN = 0;
-int WIDTH_MAX = 1500;
-int HEIGHT_MAX = 1000;
+int WIDTH_MAX = 1920;
+int HEIGHT_MAX = 1080;
 
 // background colour for the scene
 float BACK_R = 0.0f;	// red colour component (0 to 1)
@@ -86,6 +86,8 @@ void draw_3D_graphics()
 	end_effector.Px = arm3.Px + arm3.length * cos(arm3.pitch)*cos(arm1.yaw);
 	end_effector.Py = arm3.Py + arm3.length * cos(arm3.pitch)*sin(arm1.yaw);
 	end_effector.Pz = arm3.Pz + arm3.length * sin(-arm3.pitch);
+	end_effector.pitch = arm3.pitch;
+	end_effector.yaw = arm1.yaw;
 
 	//Set Dependent Arm Positions
 	arm2.yaw = arm1.yaw;
@@ -134,7 +136,7 @@ void draw_3D_graphics()
 
 	if (KEY(0x56))
 	{
-		third_POV = !third_POV;									//Toggle grab/not grab
+		third_POV = !third_POV;									//Toggle view point
 		Sleep(200);
 	}
 		
@@ -148,8 +150,8 @@ void draw_3D_graphics()
 	}
 	else
 	{
-		double eye_point[3 + 1] = { -1.0, pers1.Px, pers1.Py, pers1.Pz };		//First Person
-		double lookat_point[3 + 1] = { -1.0, end_effector.Px/2, end_effector.Py/2, end_effector.Pz/2 };
+		double eye_point[3 + 1] = { -1.0, pers1.Px, pers1.Py, pers1.Pz };//First Person
+		double lookat_point[3 + 1] = { -1.0, end_effector.Px / 2, end_effector.Py / 2, end_effector.Pz / 2 };
 		double up_dir[3 + 1] = { -1.0, 0.0, 0.0, 1.0 };				
 		double fov = PI/2;										
 		set_view(eye_point, lookat_point, up_dir, fov);
@@ -167,10 +169,18 @@ void draw_3D_graphics()
 	
 	fout << t << "," << T << "," << fps << "\n";
 
+
+//TO-DO:	Figure out if we can put these inputs in the Arm class somehow
+
 	//Start of Simulation
 	dt = 0.00003;
-	for (int i = 0; i < 100; i++) sim_step(dt, arm1.yaw, arm2.pitch, arm3.pitch); // fast and stable
-//	/\/\/\/\/\/\ - NEED THIS FOR THE PHYSICS/MATH - /\/\/\/\/\/\
+	for (int i = 0; i < 100; i++)
+	{
+		sim_step(dt, arm1.yaw, arm2.pitch, arm3.pitch);
+		obj1.sim_fall(dt);
+		obj2.sim_fall(dt);
+		pers1.sim_fall(dt);
+	}
 
 	//Point to object 1, object 2
 	dt2 = 0.002;
@@ -185,6 +195,7 @@ void draw_3D_graphics()
 		locateObject(objTheta, obj2.Px, obj2.Py, obj2.Pz);
 		pointAtObject(dt2, objTheta, arm1.yaw, arm2.pitch, arm3.pitch);
 	}
+//TO-DO:	Change locate object to velocity input
 */
 	checkPickup(end_effector, obj1);
 	checkPickup(end_effector, obj2);
@@ -206,7 +217,6 @@ void draw_3D_graphics()
 	arm3.draw();
 
 	//Draw Background
-//	bg.draw(Bgx, Bgy, Bgz, Bgyaw, Bgpitch, Bgroll);
 //	bg.draw();
 //	floor.draw();
 
