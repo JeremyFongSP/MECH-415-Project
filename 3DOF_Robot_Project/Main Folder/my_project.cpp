@@ -46,15 +46,18 @@ Arm::Arm(double length, double mass, mesh *Pm, double x, double y, double z, dou
 	this->mass = mass;
 }
 
+int Object::N;	//Initialize static N for object count
+
 Object::Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll) : Body(Pm, x, y, z, pitch, yaw, roll)
 {
 	this->radius = radius;
-	//N++;	//Count number of objects on the field
+	NumObj = ++N;	//Count number of objects on the field
 }
 
-void Object::sim_fall()
+void Object::sim_fall(double dt)
 {
-	//bring all objects down
+	if (Pz > 1e-4)	Pz -= g*dt;
+//	checkForCollision();					//TO-DO: Make a function that checks for collision and stops the object from falling further
 }
 
 ObjectWorld::ObjectWorld(int N, mesh *Pm1, int M, mesh *Pm2)
@@ -110,6 +113,7 @@ void ObjectWorld::draw()
 
 void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 {
+
 	int i;
 	const int N = 3;									// number of state variables (order of the system)
 	static double t;									// current time (seconds)
@@ -126,9 +130,9 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 		xtemp[1] = 0.0;									// initial theta1 (yaw)
 		xtemp[2] = -PI/6;								// initial theta2 (pitch2)
 		xtemp[3] = PI/6;								// initial theta3 (pitch3)
-//		xtemp[4] = 0.0;									// initial vheta1
-//		xtemp[5] = 0.0;									// initial vheta2
-//		xtemp[6] = 0.0;									// initial vheta3
+		xtemp[4] = 0.0;									// initial vheta1
+		xtemp[5] = 0.0;									// initial vheta2
+		xtemp[6] = 0.0;									// initial vheta3
 		init = 1;
 	}
 
@@ -148,8 +152,8 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 void calculate_inputs(const double X[], double t, int N, double U[], int M)
 {
 	double F[3 + 1] = { 0.0 };							// force matrix
-	double fs = 0.0001;									// force step
-	// (mass and length in global)
+	double fs = 2e-4;									// force step
+	double friction_coef = 1e-4;
 
 	// unpack
 	double theta1 = X[1];
@@ -159,29 +163,26 @@ void calculate_inputs(const double X[], double t, int N, double U[], int M)
 //	double vheta2 = X[5];
 //	double vheta3 = X[6];
 
-	if (KEY(VK_RIGHT))	F[1] = fs;
-	else if (U[1] >= 1e-4) F[1] = -fs;
-	if (KEY(VK_LEFT)) F[1] = -fs;
-	else if (U[1] <= -1e-4) F[1] = fs;
-	if (KEY(VK_DOWN))	F[2] = fs;
-	else if (U[2] >= 1e-4)	F[2] = -fs;
-	if (KEY(VK_UP)) F[2] = -fs;
-	else if (U[2] <= -1e-4) F[2] = fs;
-	if (KEY(0x58))	F[3] = fs;
-	else if (U[3] >= 1e-4) F[3] = -fs;
-	if (KEY(0x5A)) F[3] = -fs;
-	else if (U[3] <= -1e-4) F[3] = fs;
+	if (KEY(0x44))	F[1] = fs;
+	if (KEY(0x41))	F[1] = -fs;
+	if (KEY(0x53))	F[2] = fs;
+	if (KEY(0x57))	F[2] = -fs;
+	if (KEY(0x51))	F[3] = fs;
+	if (KEY(0x45))	F[3] = -fs;
 
 //TO-DO: Add a stop + bounce back if arm goes too far (kind of like collision)
 
-	/* these forces stabilize the arms
-	F[1] = 0;
-	F[2] = m[2] * g * l[2] / 2 * cos(theta2) + m[3] * g * (l[2] * cos(theta2) + l[3] / 2 * cos(theta2 + theta3));
-	F[3] = m[3] * g * l[3] / 2 * cos(theta2 + theta3);
-	*/
+	//these forces stabilize the arms
+//	F[1] = 0;
+//	F[2] = m[2] * g * l[2] / 2 * cos(theta2) + m[3] * g * (l[2] * cos(theta2) + l[3] / 2 * cos(theta2 + theta3));
+//	F[3] = m[3] * g * l[3] / 2 * cos(theta2 + theta3);
+	
 
-	// update/pack input u[] matrix
-	for (int i = 1; i <= 3; i++) U[i] += F[i];
+	// Update velocity input (w/ friction which depends on velocity)
+	for (int i = 1; i <= 3; i++)
+	{
+		U[i] = U[i] + F[i] - friction_coef*U[i];
+	}
 }
 
 void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[])
@@ -193,7 +194,7 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 
 	double x[3 + 1], v[3 + 1];							// state variables: x[1] = yaw, x[2] = pitch2 x[3] = pitch3
 	double dx[3 + 1];	// , dv[3 + 1];					// angular derivatives
-	static double vp[3 + 1] = { 0.0 };		// Previous velocity
+	static double vp[3 + 1] = { 0.0 };					// Previous velocity
 	// unpack state variables & inputs
 	for (int i = 1; i <= 3; i++) x[i] = X[i];
 //	for (int i = 1; i <= 3; i++) v[i] = X[i + 3];
@@ -216,11 +217,6 @@ void calculate_Xd(const double X[], double t, int N, const double U[], int M, do
 	// velocity kinematic
 	for (int i = 1; i <= 3; i++)	dx[i] = v[i];
 
-	/*
-	dv[1] = Minv[1][1] * (F[1] - C[1] - G[1]) + Minv[1][2] * (F[2] - C[2] - G[2]) + Minv[1][3] * (F[3] - C[3] - G[3]);
-	dv[2] = Minv[1][2] * (F[1] - C[1] - G[1]) + Minv[2][2] * (F[2] - C[2] - G[2]) + Minv[2][3] * (F[3] - C[3] - G[3]);
-	dv[3] = Minv[1][3] * (F[1] - C[1] - G[1]) + Minv[2][3] * (F[2] - C[2] - G[2]) + Minv[3][3] * (F[3] - C[3] - G[3]);
-	*/
 //	dv[1] = Minv[1][1] * (F[1] - C[1] - G[1]) + Minv[1][2] * (F[2] - C[2] - G[2]) + Minv[1][3] * (F[3] - C[3] - G[3]);
 //	dv[2] = Minv[2][1] * (F[1] - C[1] - G[1]) + Minv[2][2] * (F[2] - C[2] - G[2]) + Minv[2][3] * (F[3] - C[3] - G[3]);		//The only things that affect the physics is M22, M23, M32, M33
 //	dv[3] = Minv[3][1] * (F[1] - C[1] - G[1]) + Minv[3][2] * (F[2] - C[2] - G[2]) + Minv[3][3] * (F[3] - C[3] - G[3]);
@@ -404,6 +400,8 @@ void checkPickup(Body end_effector, Object & obj)
 	{
 		static bool grabbing = false;
 		static bool has_obj = false;
+		static double pitch_0 = obj.pitch;
+		static double roll_0 = obj.roll;
 
 		if (KEY(0x47))	{
 			grabbing = !grabbing;		//Toggle grab/not grab
@@ -416,8 +414,13 @@ void checkPickup(Body end_effector, Object & obj)
 			obj.Px = end_effector.Px;
 			obj.Py = end_effector.Py;
 			obj.Pz = end_effector.Pz;
+			obj.pitch = pitch_0 + end_effector.pitch;
+			obj.yaw = end_effector.yaw;
+			obj.roll = roll_0 + end_effector.roll;
 		}
 	}
+//TO-DO:	Keep orientation of car when it is first grabbed
+//TO-DO2:	Remove weird pitching when car arm3 pitches
 }
 /*
 void checkPickup(Body end_effector, ObjectWorld w1)

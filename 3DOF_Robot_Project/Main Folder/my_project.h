@@ -24,10 +24,11 @@ class Object : public Body
 public:
 	double radius;
 	bool is_grabbed = false;
+	int NumObj;
 	static int N;
 
 	Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll);
-	void sim_fall();		//Objects drawn to the ground
+	void sim_fall(double dt);		//Objects drawn to the ground
 };
 
 class ObjectWorld		//For random objects generation
@@ -47,7 +48,6 @@ public:
 
 // U is and output so we don't use a const modifier (ie full call by reference)
 void calculate_inputs(const double X[], double t, int N, double U[], int M);
-
 // note U is and input for this function hence the const modifier
 void calculate_Xd(const double X[], double t, int N, const double U[], int M, double Xd[]);
 void sim_step(double dt, double &yaw, double &pitch2, double &pitch3);
