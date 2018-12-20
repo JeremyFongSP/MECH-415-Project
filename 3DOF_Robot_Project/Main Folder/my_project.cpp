@@ -162,45 +162,45 @@ void FishWorld::draw()
 void sim_step(double dt, double &yaw, double &pitch2, double &pitch3, double ObjTheta[3+1])
 {
 	int i;
-	const int N = 3;										// number of state variables (order of the system)
-	static double t;										// current time (seconds)
-	static double xtemp[N + 1];								// state vector temporarily store and output to yaw/pitch2/pitch3
-	double xd[3 + 1];										// derivative vector at time t
-	const int M = 3;										// number of inputs
-	static double u[M + 1];									// input vector
+	const int N = 3;											// number of state variables (order of the system)
+	static double t;											// current time (seconds)
+	static double xtemp[N + 1];									// state vector temporarily store and output to yaw/pitch2/pitch3
+	double xd[3 + 1];											// derivative vector at time t
+	const int M = 3;											// number of inputs
+	static double u[M + 1];										// input vector
 	static int init = 0;
 
 	// initialization section
 	if (!init) {
-		t = 0.0;											// initial time
-		xtemp[0] = -1.0;									// not used
-		xtemp[1] = 0.0;										// initial theta1 (yaw)
-		xtemp[2] = -PI/6;									// initial theta2 (pitch2)
-		xtemp[3] = PI/6;									// initial theta3 (pitch3)
-		xtemp[4] = 0.0;										// initial vheta1
-		xtemp[5] = 0.0;										// initial vheta2
-		xtemp[6] = 0.0;										// initial vheta3
+		t = 0.0;												// initial time
+		xtemp[0] = -1.0;										// not used
+		xtemp[1] = 0.0;											// initial theta1 (yaw)
+		xtemp[2] = -PI/6;										// initial theta2 (pitch2)
+		xtemp[3] = PI/6;										// initial theta3 (pitch3)
+		xtemp[4] = 0.0;											// initial vheta1
+		xtemp[5] = 0.0;											// initial vheta2
+		xtemp[6] = 0.0;											// initial vheta3
 		init = 1;
 	}
 
-	calculate_inputs(xtemp,dt,u,ObjTheta);					// calculate u
-	calculate_Xd(xtemp,u,xd);								// calculate x-derivatives
+	calculate_inputs(xtemp,dt,u,ObjTheta);						// calculate u
+	calculate_Xd(xtemp,u,xd);									// calculate x-derivatives
 
-	for(i=1;i<=N;i++) xtemp[i] = xtemp[i] + xd[i]*dt;		// Euler step
+	for(i=1;i<=N;i++) xtemp[i] = xtemp[i] + xd[i]*dt;			// Euler step
 
-	t = t + dt;												// increment time
+	t = t + dt;													// increment time
 
 	// Output to draw_3D_graphics
-	yaw =		xtemp[1];									// Rotates Base Position
-	pitch2 =	xtemp[2];									// Pitch First Arm Position
-	pitch3 =	xtemp[3] + xtemp[2];						// Pitch Second Arm Position
+	yaw =		xtemp[1];										// Rotates Base Position
+	pitch2 =	xtemp[2];										// Pitch First Arm Position
+	pitch3 =	xtemp[3] + xtemp[2];							// Pitch Second Arm Position
 }
 
 void calculate_inputs(const double X[], double dt, double U[], double ObjTheta[3+1])
 {
-	double F[3 + 1] = { 0.0 };								// force matrix
-	double fs = 2e-4;										// force step
-	double friction_coef = 1e-4;							// force friction depends on current velocity
+	double F[3 + 1] = { 0.0 };									// force matrix
+	double fs = 2e-4;											// force step
+	double friction_coef = 1e-4;								// force friction depends on current velocity
 
 	//Velocity Input Keystrokes: W - A - S - D - Q - E
 	if (KEY(0x44))	F[1] = fs;

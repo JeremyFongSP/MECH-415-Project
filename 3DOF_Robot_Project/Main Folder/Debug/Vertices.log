@@ -1,8 +1,9 @@
-﻿Build started 12/20/2018 1:02:30 AM.
+﻿Build started 12/20/2018 3:33:02 AM.
      1>Project "C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Vertices.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\..\..\common /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _MBCS /Gm /EHsc /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt draw_3D_graphics.cpp
-         draw_3D_graphics.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\..\..\common /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _MBCS /Gm /EHsc /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt my_project.cpp
+         my_project.cpp
+     1>c:\users\jeremy\dropbox\school\mech 415\project\3dof_robot_project\main folder\my_project.cpp(229): warning C4101: 'dx' : unreferenced local variable
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"Debug\Vertices.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:libci.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"Debug\Vertices.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Debug\Vertices.lib" /MACHINE:X86 /SAFESEH:NO /MACHINE:I386 /IGNORE:4089 Debug\draw_3D_graphics.obj
          Debug\graphic_setup.obj
@@ -11,13 +12,9 @@
          Debug\rotation.obj
          Debug\timer.obj
          Vertices.lib
-     1>Vertices.lib(3D_graphics.obj) : warning LNK4204: 'C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>Vertices.lib(d3dfont.obj) : warning LNK4204: 'C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>Vertices.lib(D3D_functions.obj) : warning LNK4204: 'C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
-     1>Vertices.lib(winmain.obj) : warning LNK4204: 'C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
          Vertices.vcxproj -> C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\Vertices.exe
      1>Done Building Project "C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Vertices.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.39
+Time Elapsed 00:00:01.68
