@@ -1,4 +1,4 @@
-﻿Build started 12/19/2018 7:11:57 PM.
+﻿Build started 12/19/2018 10:37:31 PM.
      1>Project "C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Vertices.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I..\..\..\common /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _MBCS /Gm /EHsc /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt draw_3D_graphics.cpp my_project.cpp
@@ -13,9 +13,13 @@
          Debug\rotation.obj
          Debug\timer.obj
          Vertices.lib
+     1>Vertices.lib(3D_graphics.obj) : warning LNK4204: 'C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>Vertices.lib(d3dfont.obj) : warning LNK4204: 'C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>Vertices.lib(D3D_functions.obj) : warning LNK4204: 'C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
+     1>Vertices.lib(winmain.obj) : warning LNK4204: 'C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\vc120.pdb' is missing debugging information for referencing module; linking object as if no debug info
          Vertices.vcxproj -> C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Debug\Vertices.exe
      1>Done Building Project "C:\Users\Jeremy\Dropbox\School\MECH 415\Project\3DOF_Robot_Project\Main Folder\Vertices.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.98
+Time Elapsed 00:00:01.95

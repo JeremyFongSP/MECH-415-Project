@@ -7,6 +7,8 @@ public:
 	mesh *Pm;
 
 	Body(mesh *Pm, double Px, double Py, double Pz, double pitch, double yaw, double roll);
+	Body(mesh *Pm);
+	double get_distance(Body obj);
 	void draw();
 };
 
@@ -17,6 +19,7 @@ public:
 	double mass;
 
 	Arm(double length, double mass, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll);
+
 };
 
 class Object : public Body
@@ -24,14 +27,27 @@ class Object : public Body
 public:
 	double radius;
 	bool is_grabbed = false;
+	double previous_x;
+	double previous_y;
 	double previous_z;
-	double t;
 	int NumObj;
 	static int N;
 
 	Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll);
+	Object(double radius, mesh *Pm);
 	void sim_fall(double dt);		//Objects drawn to the ground
 	void sim_roam(double dt);
+};
+
+class FishWorld
+{
+public:
+	int nb;
+	Object *pf[5];
+
+	FishWorld(int nb);
+	~FishWorld();
+	void draw();
 };
 
 class ObjectWorld		//For random objects generation
@@ -59,7 +75,7 @@ void ComputeGravityMatrix(double m[3 + 1], double x[3 + 1], double l[3 + 1], dou
 void ComputeCoriolisMatrix(double m[3 + 1], double x[3 + 1], double v[3 + 1], double l[3 + 1], double C[3 + 1]);
 void ComputeDeterminant(double Ma[3 + 1][3 + 1], double & det);
 void ComputeInvertedMatrix(double Ma[3 + 1][3 + 1], double det, double Minv[3 + 1][3 + 1]);
-void locateObject(double objThetas[3 + 1], double x, double y, double z);
+void locateObject(double objThetas[3 + 1], Object obj);
 void pointAtObject(double dt, const double X[3 + 1], double objTheta[3 + 1], double & yaw, double & pitch2, double & pitch3);
 //void pointAtObject(double dt, double objTheta[3 + 1], double & yaw, double & pitch2, double & pitch3);
 void checkPickup(Body End_Effector, Object & obj);

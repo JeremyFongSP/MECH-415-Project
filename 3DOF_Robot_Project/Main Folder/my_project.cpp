@@ -11,6 +11,7 @@
 #include "3D_graphics.h"
 #include "my_project.h"
 #include "ran.h"
+#include "timer.h"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ ofstream fout_myproject("My_project_Debug.csv");
 
 //------------------------------------------------ Classes -------------------------------------------------------------
 
+
 Body::Body(mesh *Pm, double Px, double Py, double Pz, double pitch, double yaw, double roll)
 {
 	this->Px = Px;
@@ -34,6 +36,22 @@ Body::Body(mesh *Pm, double Px, double Py, double Pz, double pitch, double yaw, 
 	this->yaw = yaw;
 	this->roll = roll;
 	this->Pm = Pm;
+}
+
+Body::Body(mesh *Pm)
+{
+	Px = 0.0;
+	Py = 0.0;
+	Pz = 0.0;
+	pitch = 0.0;
+	yaw = 0.0;
+	roll = 0.0;
+	this->Pm = Pm;
+}
+
+double Body::get_distance(Body obj)
+{
+	return sqrt(abs((obj.Px - Px) * (obj.Px - Px) + (obj.Py - Py) * (obj.Py - Py) + (obj.Pz - Pz) * (obj.Pz - Pz)));
 }
 
 void Body::draw()
@@ -52,22 +70,34 @@ int Object::N;	//Initialize static N for object count
 Object::Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll) : Body(Pm, x, y, z, pitch, yaw, roll)
 {
 	this->radius = radius;
+	previous_x = x;
+	previous_y = y;
 	previous_z = z;
+	NumObj = ++N;	//Count number of objects on the field
+}
+
+Object::Object(double radius, mesh *Pm) : Body(Pm)
+{
+	this->radius = radius;
+	previous_z = 0.0;
 	NumObj = ++N;	//Count number of objects on the field
 }
 
 void Object::sim_fall(double dt)
 {
 	if (Pz > 1e-4)	Pz -= g*dt;
-//	else Pz = 0.0;							//TO-DO:	object stays at 0 if arm moves lower
-//	checkGoal();							//TO-DO2:	if reaches goal, add 1 point
 }
 
 void Object::sim_roam(double dt)
 {
+	static double t0 = high_resolution_time();
+	static double t = high_resolution_time() - t0;
+
 	if (!is_grabbed)
 	{
-		Pz = 5 * sin(t) + previous_z;
+		Pz = 5 * sin(1.2*t) + previous_z;
+		Px = 5 * cos(1.2*t) + previous_x;
+		Py = 5 * sin(1.2*t) + previous_y;
 		t += dt;
 	}
 }
@@ -75,7 +105,59 @@ void Object::sim_roam(double dt)
 //TO-DO:	Make fishes go around
 //TO-DO2:	Make fishes face where they're heading
 
+FishWorld::FishWorld(int nb)
+{
+	static mesh fm("fish1.x");
+	this->nb = nb;
 
+	fm.Roll_0 = PI;
+
+	for (int i = 1; i <= nb; i++)
+	{
+		pf[i] = new Object(3.0, &fm);
+	}
+}
+
+FishWorld::~FishWorld()
+{
+	for (int i = 1; i <= nb; i++)
+	{
+		if (pf[i] == nullptr)
+			exit(1);
+		else
+		{
+			delete pf[i];
+			pf[i] = nullptr;
+		}
+	}
+}
+
+void FishWorld::draw()
+{
+	for (int i = 1; i <= nb; i++) 
+	{
+		pf[i]->Pm->draw(pf[i]->Px, pf[i]->Py, pf[i]->Pz, pf[i]->yaw, pf[i]->pitch, pf[i]->roll);
+	}
+}
+
+/*
+void FishWorld::input()
+{
+	int i;
+	t0 = high_resolution_time();
+	t = high_resolution_time() - t0;
+	long int s = 0;
+
+	for (i = 1; i <= nb; i++)
+	{
+		fishes[i]->Px += ran(s)*t;
+		fishes[i]->Py += PI*t / 2;
+		fishes[i]->Pz = 5.0;
+		s--;
+	}
+	// Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll)
+}
+*/
 ObjectWorld::ObjectWorld(int N, mesh *Pm1, int M, mesh *Pm2)
 {
 	this->Pm1 = Pm1;
@@ -178,8 +260,15 @@ void calculate_inputs(const double X[], double dt, int N, double U[], double Obj
 //	double vheta1 = X[4];
 //	double vheta2 = X[5];
 //	double vheta3 = X[6];
-
-	//KEY: W - A - S - D - Q - E
+	/*
+	if (KEY(VK_RIGHT))	F[1] = fs; // d - arm1 move right
+	if (KEY(VK_LEFT))	F[1] = -fs; // a - arm1 move left
+	if (KEY(VK_DOWN) && !(KEY(0x41)))	F[2] = fs; // s - arm2 move up
+	if (KEY(VK_UP) && !(KEY(0x41)))	F[2] = -fs; // w - arm2 move down
+	if (KEY(VK_DOWN) && KEY(0x41))	F[3] = fs; // q - arm3 move down
+	if (KEY(VK_UP) && KEY(0x41))	F[3] = -fs; // e - arm 3 move up
+	*/
+	//Keystrokes: W - A - S - D - Q - E
 	if (KEY(0x44))	F[1] = fs;
 	if (KEY(0x41))	F[1] = -fs;
 	if (KEY(0x53))	F[2] = fs;
@@ -192,12 +281,6 @@ void calculate_inputs(const double X[], double dt, int N, double U[], double Obj
 
 
 //TO-DO: Add a stop + bounce back if arm goes too far (kind of like collision)
-
-	//these forces stabilize the arms
-//	F[1] = 0;
-//	F[2] = m[2] * g * l[2] / 2 * cos(theta2) + m[3] * g * (l[2] * cos(theta2) + l[3] / 2 * cos(theta2 + theta3));
-//	F[3] = m[3] * g * l[3] / 2 * cos(theta2 + theta3);
-	
 
 	// Update velocity input (w/ friction which depends on velocity)
 	for (int i = 1; i <= 3; i++)
@@ -362,16 +445,23 @@ void ComputeInvertedMatrix(double Ma[3 + 1][3 + 1], double det, double Minv[3 + 
 	*/
 }
 
-void locateObject(double objThetas[3+1], double x, double y, double z)
+void locateObject(double objThetas[3+1], Object obj)
 {
 	//Inverse Kinematics
 	double r;
 	double D;
-	objThetas[1] =	atan2(y, x);
-	r			 =	sqrt(x*x + y*y);
-	D			 =	sqrt((z - l[1])*(z - l[1]) + r * r);
+	objThetas[1] = atan2(obj.Py, obj.Px);
+	r = sqrt(obj.Px*obj.Px + obj.Py*obj.Py);
+	D = sqrt((obj.Pz - l[1])*(obj.Pz - l[1]) + r * r);
 	objThetas[3] = PI - acos((D * D - l[3] * l[3] - l[2] * l[2]) / -(2 * l[2] * l[3]));
-	objThetas[2] =	atan2(-(z - l[1]), r) - atan2(l[3] * sin(objThetas[3]), l[2] + l[3] * cos(objThetas[3]));
+	objThetas[2] = atan2(-(obj.Pz - l[1]), r) - atan2(l[3] * sin(objThetas[3]), l[2] + l[3] * cos(objThetas[3]));
+
+	text_xy("...ZONING ON TARGET...", 850, 200, 20);
+	text_xy("Target Location: ", 800.0, 250.0, 14);
+	text_xy((int)obj.Px, 1000, 250, 14);
+	text_xy((int)obj.Py, 1070.0, 250.0, 14);
+	text_xy((int)obj.Pz, 1140.0, 250.0, 14);
+	text_xy("Objective distance: ", 800.0, 300.0, 14);
 
 //This should be correct
 }
@@ -433,7 +523,12 @@ void checkPickup(Body end_effector, Object & obj)
 		if (KEY(0x47))	{
 			grabbing = !grabbing;		//Toggle grab/not grab
 			obj.is_grabbed = !obj.is_grabbed;
-			if (!obj.is_grabbed)	obj.previous_z = obj.Pz;
+			if (!obj.is_grabbed)
+			{
+				obj.previous_z = obj.Pz;
+				obj.previous_y = obj.Py;
+				obj.previous_x = obj.Px;
+			}
 			Sleep(200);
 		}
 
@@ -485,4 +580,4 @@ void resolveCollision(Object & one, Object & two)
 		}
 	}
 }
-//---------------------------------------------- End Functions -----------------------------------------------------------
+// ----------------------------------- End Functions -----------------------------------------------------------
