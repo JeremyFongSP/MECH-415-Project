@@ -6,10 +6,12 @@ Annie Fong	ID#: 27398034
 Vivek Patel ID#: 27532377
 Jeremy Fong ID#: 21952250
 
-//TO-DO: Add a description
+Description:
+3DOF Arm without gravity, using inverse kinematics for automatic targeting
+Inputs are velocity, state variables are positions of the three links
+Presented as a game of catching fish
 
-Formatted for full screen
-
+Formatted for a full screen of 1920x1080
 */
 
 #include <cmath>
@@ -19,12 +21,12 @@ Formatted for full screen
 #include <fstream>
 #include <strstream>
 #include <iomanip>
-#include <windows.h>		// for keyboard input
+#include <windows.h>
 
 // user defined functions
-#include "timer.h"			// for measuring time
-#include "rotation.h"		// for computing rotation functions
-#include "3D_graphics.h"	// for DirectX 3D graphics
+#include "timer.h"
+#include "rotation.h"
+#include "3D_graphics.h"
 #include "my_project.h"
 #include "ran.h"
 
@@ -41,14 +43,8 @@ float BACK_R = 0.0f;	// red colour component (0 to 1)
 float BACK_G = 0.2f;	// green colour component (0 to 1)
 float BACK_B = 0.5f;	// blue colour component (0 to 1)
 
-// default min and max viewing distances.
-// objects closer than VMIN and farther than VMAX are not drawn (ie cannot be seen).
-// note the ratio of VMAX/VMIN should be less than 10,000 for most graphics cards.
 double VMIN = 0.25;		// units of m
 double VMAX = 1000.0;	// units of m
-
-// global variable for keyboard input
-//extern unsigned char Key_input[256];
 
 using namespace std;
 
@@ -61,35 +57,26 @@ void draw_3D_graphics()
 	static mesh m1("arm1.x");
 	static mesh m2("arm2.x");
 	static mesh m3("arm3.x");
-	static mesh persm1("car.x");
-	static mesh goalm("84-GMC-truck.x");
+	static mesh persm1("3dm-r-r2-d2.x");
 	static mesh fishm("fish1.x");
-//	goalm.Scale = 1.0;
+	static mesh goalm("cage.x");
+
+	//Proper Scaling/Orientation
+	persm1.Scale = 0.2;
+	goalm.Scale = 5.0;
 	goalm.Roll_0 = PI / 2;
 	persm1.Pitch_0 = 5* PI/ 2;
 
-	//Initialization for arm and object objects
-	static Arm arm1(16.5, 10.0, &m1, 0.0, 0.0, 0.0, 0.0, 0.0, PI / 2);				//You can keep adding max of 8 mesh files.
+	//Initialization
+	//3DOF ROBOT
+	static Arm arm1(16.5, 10.0, &m1, 0.0, 0.0, 0.0, 0.0, 0.0, PI / 2);
 	static Arm arm2(16.5, 10.0, &m2, 0.0, 0.0, 16.5, -PI/6, arm1.yaw, PI / 2);
 	static Arm arm3(21.0, 10.0, &m3, 0.0, 0.0, 0.0, PI/6, 0.0, PI / 2);
-//	static ObjectWorld w1(1, &objm1, 1, &objm2);
-
-	//static Object obj1(3.0, &objm1, 30.0, 0.0, 30.0, 0.0, 0.0, 0.0);
-	//static Object obj2(3.0, &objm2, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
-	//static Object pers1(3.0, &background, 30.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
-	//static Body bg(&bgm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	//static Body end_effector(&end_em, 0.0, 0.0, 0.0, 0.0, PI, PI/2);
-
-	//static Object obj1(3.0, &objm1, 30.0, -20.0, 30.0, 0.0, 0.0, PI / 2);			original
-	//static Object obj2(3.0, &objm1, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);			original
+	//OBJECTS
 	static FishWorld fishes(2);
 	static Object pers1(3.0, &persm1);
-//	static Body bg(&bgm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	static Body end_effector(&m1);					//m1 is placeholder if ever we want to add an actual model
-	static Body goal_truck(&goalm, -40.0, -20.0, 0.0, 0.0, 0.0, 0.0);
-//	static Body floor(&floorm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-
-//TO-DO: Group all objects into an array so we can use for-loops to cycle through them when we need (pickup, fall, draw, ...)
+	static Body end_effector(&m1);								//m1 is placeholder if ever we want to add an actual model
+	static Body cage(&goalm, -40.0, -20.0, 0.0, 0.0, 0.0, 0.0);
 
 	//Set End_effector Position
 	end_effector.Px = arm3.Px + (arm3.length+5) * cos(arm3.pitch)*cos(arm1.yaw);
@@ -98,29 +85,28 @@ void draw_3D_graphics()
 	end_effector.pitch = arm3.pitch;
 	end_effector.yaw = arm1.yaw;	
 
-	//Set Dependent Arm Positions
+	//Set Dependent Arms Position
 	arm2.yaw = arm1.yaw;	
 	arm3.Px = 16.5 * cos(arm2.pitch) * cos(arm1.yaw);
 	arm3.Py = 16.5 * cos(arm2.pitch) * sin(arm1.yaw);
 	arm3.Pz = 16.5 - 16.5 * sin(arm2.pitch);
 	arm3.yaw = arm1.yaw;
 
-	//Person Positions
-	pers1.yaw = atan2(pers1.Py - end_effector.Py, pers1.Px - end_effector.Px);
+	//Person Position
+	pers1.yaw = PI + atan2(pers1.Py - end_effector.Py, pers1.Px - end_effector.Px);
 
+	//Initialize Time and Score
 	static int init = 0;
-	static double t;											// clock time from t0
-	static double t0;											// initial clock time
-	static double T, fps, tp, dt, dt2;							// dt used for sim stepping; dt2 used to move arm
+	static double t;									
+	static double t0;
+	static double T, fps, tp, dt, dt2;			
+	static int score = 0;
+	static int money = 0;
 
-// TO-DO2:	Make a "person.x" 
-
-	// initalization section
+	//Initalization for Objects + Reset Section
 	if(!init) {
-
-//		for (int i = 1; i <= fishes.nb; i++)			// make fishes random location (reachable)
-		fishes.pf[1]->Px = 25.0;
-		fishes.pf[1]->Py = 5.0;
+		fishes.pf[1]->Px = 15.0;
+		fishes.pf[1]->Py = -15.0;
 		fishes.pf[1]->Pz = 20.0;
 		fishes.pf[1]->yaw = 0.0;
 		fishes.pf[1]->roll = 0.0;
@@ -129,6 +115,7 @@ void draw_3D_graphics()
 		fishes.pf[1]->previous_y = fishes.pf[1]->Py;
 		fishes.pf[1]->previous_z = fishes.pf[1]->Pz;
 		fishes.pf[1]->is_grabbed = false;
+		fishes.pf[1]->in_cage = false;
 		fishes.pf[2]->Px = -20.0;
 		fishes.pf[2]->Py = 20.0;
 		fishes.pf[2]->Pz = 0.0;
@@ -139,108 +126,116 @@ void draw_3D_graphics()
 		fishes.pf[2]->previous_y = fishes.pf[2]->Py;
 		fishes.pf[2]->previous_z = fishes.pf[2]->Pz;
 		fishes.pf[2]->is_grabbed = false;
+		fishes.pf[2]->in_cage = false;
 		pers1.Px = 20.0; 
 		pers1.Py = 20.0; 
 		pers1.Pz = 0.0; 
 		pers1.pitch = 0.0; 
 		pers1.roll = PI/2; 
 		pers1.is_grabbed = false;
+		pers1.in_cage = false;
 
-		t0 = high_resolution_time();							// initial clock time (s)
-		tp = 0.0;												// previous time
+		t0 = high_resolution_time();
+		tp = 0.0;
 		init = 1;
 	}
 
-	//STATIC ON-SCREEN TEXT
-	static double objects_in_goal = 0.0;
-	text_xy("Place the objects inside the truck!\nGoal = 3", 10.0, 10.0, 20);
-	text_xy("Current =", 10.0, 70.0, 20);
-	text_xy(objects_in_goal, 135.0, 70.0, 20);
-	text_xy("Commands: \nW-A-S-D-Q-E = Move Arms\nV = Toggle POV, G = Grab, R = Reset", 10.0, 1000.0, 10);
-//	text_xy("play with arroy keys and press A with arroy to move the grabber arm", 10.0, 90.0, 20);
-	text_xy("Bonus hint: You are an object!\nPress 1 or 2 to auto-target", 1650.0, 1000.0, 10);
+	//Time Related Variables
+	t = high_resolution_time() - t0;
+	T = t - tp;	
+	fps = 1 / T;
+	tp = t;	
 
-	//RESET
-	if (KEY(0x52))	//KEY: R
+	//Static on-text screen
+	text_xy("Place the fish inside the cage!", 10.0, 10.0, 20);
+	text_xy("Commands: \nW-A-S-D-Q-E = Move Arms\nV = Toggle POV, G = Grab, R = Reset", 10.0, 1000.0, 10);
+	text_xy("Bonus hint: You are an object!\nPress 1, 2 or 3 to auto-target", 1650.0, 1000.0, 10);
+	text_xy("Fish =", 10.0, 90.0, 20);
+	text_xy(score, 150.0, 90.0, 20);
+	text_xy("Money = ", 10.0, 50.0, 20);
+	text_xy(money, 150.0, 50.0, 20);
+	text_xy("Press SPACEBAR to sell fish in cage!", 1400, 10.0, 20);
+	
+	//----------------------------------------------------------Keyboard Inputs--------------------------------------------------------
+	if (KEY(VK_SPACE))											//KEY: SPACE
+	{
+		money += score * 5;
+		score = 0;
+		if (fishes.pf[1]->in_cage) fishes.pf[1]->delete_obj();
+		if (fishes.pf[2]->in_cage) fishes.pf[2]->delete_obj();
+		if (pers1.in_cage) pers1.delete_obj();
+	}
+	
+	if (KEY(0x52))
 	{
 		init = 0;
 	}
 
 	//POV
 	static bool third_POV = true;
-	if (KEY(0x56))		//KEY: V
+	if (KEY(0x56))												//KEY: V
 	{
-		third_POV = !third_POV;									//Toggle view point
+		//Toggle View Point
+		third_POV = !third_POV;									
 		Sleep(200);
 	}
-
-	if (third_POV)
+	//Third Person View
+	if (third_POV)												
 	{	
-		double eye_point[3 + 1] = { -1.0, 60.0, 60.0, 30.0 };		//Third Person
+		double eye_point[3 + 1] = { -1.0, 60.0, 60.0, 30.0 };
 		double lookat_point[3 + 1] = { -1.0, 0.0, 0.0, 20.0 };		
 		double up_dir[3 + 1] = { -1.0, 0.0, 0.0, 1.0 };				
 		double fov = PI / 4;										
 		set_view(eye_point, lookat_point, up_dir, fov);
 	}
+	//First Person View
 	else
 	{
-		double eye_point[3 + 1] = { -1.0, pers1.Px, pers1.Py, pers1.Pz };//First Person
+		double eye_point[3 + 1] = { -1.0, pers1.Px, pers1.Py, pers1.Pz + 8.0 };
 		double lookat_point[3 + 1] = { -1.0, end_effector.Px / 2, end_effector.Py / 2, end_effector.Pz / 2 };
 		double up_dir[3 + 1] = { -1.0, 0.0, 0.0, 1.0 };				
 		double fov = PI/2;										
 		set_view(eye_point, lookat_point, up_dir, fov);
 	}
 
-	//Axes in meters (x = red, y = green, z = blue)
-	draw_XYZ(3.0);
-
-	//Should we use high_resolution_time()??
-	t =		high_resolution_time() - t0;						//Time since the program started (s)
-	T =		t - tp;												//Calculate dt frame or period
-	fps =	1 / T;												//Frame per second
-	tp =	t;													//Update previous time
-	
-//	fout << t << "," << T << "," << fps << "\n";
-
-
-//TO-DO:	Figure out if we can put these inputs in the Arm class somehow
-	
-	//Locate Objects with Keystrokes
+	//Locate Objects
 	static double ObjTheta[3 + 1];
-	if (KEY(0x31))			//KEY: 1
+	if (KEY(0x31))												//KEY: 1
 	{
-
-//		double obj_dist = sqrt(abs((obj1.Px - end_effector.Px) * (obj1.Px - end_effector.Px) + (obj1.Py - end_effector.Py) * (obj1.Py - end_effector.Py) + (obj1.Pz - end_effector.Pz) * (obj1.Pz - end_effector.Pz)));
 		locateObject(ObjTheta, *fishes.pf[1]);
 		text_xy(end_effector.get_distance(*fishes.pf[1]), 1000.0, 300.0, 14);
 		if (end_effector.get_distance(*fishes.pf[1]) < 3.0)		text_xy("(Press G!)", 1100.0, 300.0, 14);
 	}
-
-	else if (KEY(0x32))		//KEY: 2
+	else if (KEY(0x32))											//KEY: 2
 	{
 		locateObject(ObjTheta, *fishes.pf[2]);
 		text_xy(end_effector.get_distance(*fishes.pf[2]), 1000.0, 300.0, 14);
 		if (end_effector.get_distance(*fishes.pf[2]) < 3.0)		text_xy("(Press G!)", 1100.0, 300.0, 14);
 	}
-	else if (KEY(0x33))		//KEY: 3
+	else if (KEY(0x33))											//KEY: 3
 	{
 		locateObject(ObjTheta, pers1);
 		text_xy(end_effector.get_distance(pers1), 1000.0, 300.0, 14);
 		if (end_effector.get_distance(pers1) < 3.0)		text_xy("(Press G!)", 1100.0, 300.0, 14);
 	}
 
-	//Start of Simulation
+	//								Some inputs were placed in "inputs" under the sim_step function
+	//-------------------------------------------------------End Keyboard input-------------------------------------------------
+
+	//Simulation
 	dt = 0.00003;
 	for (int i = 0; i < 300; i++)
 	{
 		sim_step(dt, arm1.yaw, arm2.pitch, arm3.pitch, ObjTheta);
-//		if (//fish not in cage)
 		fishes.pf[1]->sim_roam(dt);
 		fishes.pf[2]->sim_roam(dt);
 		pers1.sim_fall(dt);
 	}
 
-//TO-DO: Fish in cage
+	//Update Program
+	fish_caught(cage, *fishes.pf[1], score);
+	fish_caught(cage, *fishes.pf[2], score);
+	fish_caught(cage, pers1, score);
 
 	resolveCollision(*fishes.pf[1], *fishes.pf[2]);
 	resolveCollision(*fishes.pf[2], pers1);
@@ -250,26 +245,15 @@ void draw_3D_graphics()
 	checkPickup(end_effector, *fishes.pf[2]);
 	checkPickup(end_effector, pers1);
 
-//TO-DO:	Add Collision detection to stop movements (arms to arms & arms to floor)
-//TO-DO2:	Add another mesh for "hand" or "magnet" to "grab" objects
-//TO-DO3:	Add another mesh object to be grabbed by the arm (a crate or whatever)
-//TO-DO4:	Add grabbing mechanism (if (touching object && press a button) stick object to arm)
-//			(if (object stuck to arm && press a button) release object, object falls to ground)
-//TO-DO5:	Maybe add a button to stabilize (stop all movement and keep "gravity" pull the arms down)
-
-	//Draw 3DOF Robot
+	//Draw all relevant objects
+		//3DOF ROBOT
 	arm1.draw();
 	arm2.draw();
 	arm3.draw();
-	goal_truck.draw();
-	//Draw Background
-//	bg.draw();
-//	floor.draw();
-
-	//Draw Objects
-	//obj1.draw();
-	//obj2.draw();
+	
+		//OBJECTS
 	fishes.draw();
 	pers1.draw();
+	cage.draw();
 }
 
