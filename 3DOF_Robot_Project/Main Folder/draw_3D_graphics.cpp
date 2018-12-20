@@ -81,7 +81,7 @@ void draw_3D_graphics()
 	static Arm arm2(16.5, 10.0, &m2, 0.0, 0.0, 16.5, -PI/6, arm1.yaw, PI / 2);
 	static Arm arm3(21.0, 10.0, &m3, 0.0, 0.0, 0.0, PI/6, 0.0, PI / 2);
 //	static ObjectWorld w1(1, &objm1, 1, &objm2);
-	static Object obj1(3.0, &objm1, 30.0, -20.0, 30.0, 0.0, 0.0, PI / 2);
+	static Object obj1(3.0, &objm1, 30.0, -20.0, 20.0, 0.0, 0.0, PI / 2);
 	static Object obj2(3.0, &objm1, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
 	static Object pers1(3.0, &persm1, 20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
 //	static Body bg(&bgm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -147,25 +147,25 @@ void draw_3D_graphics()
 	//On-Screen text
 	static double objects_in_goal = 0.0;
 	text_xy("Place the objects inside the truck!", 10.0, 10.0, 20);
-	text_xy("V = switch POV, G = Grab, R = Reset Objects", 10.0, 50.0, 20);
-	text_xy("Goal = 3", 10.0, 90.0, 20);
-	text_xy("Current =", 10.0, 130.0, 20);
+	text_xy("Commands: ", 10.0, 970.0, 10);
+	text_xy("W-A-S-D-Q-E = Move Arms", 10.0, 1000, 10);
+	text_xy("V = Toggle POV, G = Grab, R = Reset Objects", 10.0, 1030, 10);
+	text_xy("Goal = 3", 10.0, 50.0, 20);
+	text_xy("Current =", 10.0, 90.0, 20);
 	text_xy("Hint: You are an object!", 1650.0, 1000.0, 10);
 	text_xy("Press 1 or 2 to auto zoom on objects", 1650.0, 1030.0, 10);
-	text_xy(objects_in_goal, 135.0, 130.0, 20);
+	text_xy(objects_in_goal, 135.0, 90.0, 20);
 
-//TO-DO:	Reset
-
-	if (KEY(0x52))
+	if (KEY(0x52))	//KEY: R
 	{
-		obj1.Px = 30.0; obj1.Py = -20.0; obj1.Pz = 30.0; obj1.pitch = 0.0; obj1.yaw = 0.0; obj1.roll = PI /2; obj1.is_grabbed = false;
-		obj2.Px = -20.0; obj2.Py = 20.0; obj2.Pz = 0.0; obj2.pitch = 0.0; obj2.yaw = 0.0; obj2.roll = PI/2; obj2.is_grabbed = false;
+		obj1.Px = 30.0; obj1.Py = -20.0; obj1.Pz = 30.0; obj1.pitch = 0.0; obj1.yaw = 0.0; obj1.roll = PI / 2; obj1.previous_z = obj1.Pz;  obj1.is_grabbed = false;
+		obj2.Px = -20.0; obj2.Py = 20.0; obj2.Pz = 0.0; obj2.pitch = 0.0; obj2.yaw = 0.0; obj2.roll = PI / 2; obj2.previous_z = obj2.Pz; obj2.is_grabbed = false;
 		pers1.Px = 20.0; pers1.Py = 20.0; pers1.Pz = 0.0; pers1.pitch = 0.0; pers1.yaw = 0.0; pers1.roll = PI/2; pers1.is_grabbed = false;
 	}
 
 	static bool third_POV = true;
 
-	if (KEY(0x56))
+	if (KEY(0x56))		//KEY: V
 	{
 		third_POV = !third_POV;									//Toggle view point
 		Sleep(200);
@@ -205,34 +205,60 @@ void draw_3D_graphics()
 
 	//Locate Objects with Keystrokes
 	static double ObjTheta[3 + 1];
-	if (KEY(0x31))
+	if (KEY(0x31))		//KEY: 1
 	{
+		double obj_dist = sqrt(abs((obj1.Px - end_effector.Px) * (obj1.Px - end_effector.Px) + (obj1.Py - end_effector.Py) * (obj1.Py - end_effector.Py) + (obj1.Pz - end_effector.Pz) * (obj1.Pz - end_effector.Pz)));
 		locateObject(ObjTheta, obj1.Px, obj1.Py, obj1.Pz);
-		text_xy("Located Object at: ", 700.0, 250.0, 14);
+		text_xy("Located Object1 at: ", 700.0, 250.0, 14);
 		text_xy(obj1.Px, 900, 250, 14);
 		text_xy(obj1.Py, 970.0, 250.0, 14);
 		text_xy(obj1.Pz, 1040.0, 250.0, 14);
+		text_xy("Objective distance: ", 700.0, 300.0, 14);
+		text_xy(obj_dist, 900.0, 300.0, 14);
 	}
-	if (KEY(0x32))	locateObject(ObjTheta, obj2.Px, obj2.Py, obj2.Pz);
-	if (KEY(0x33))	locateObject(ObjTheta, pers1.Px, pers1.Py, pers1.Pz);
+//TO-DO:	make obj-dist a function or member var for end_effector
+
+	else if (KEY(0x32))//KEY: 2
+	{
+		locateObject(ObjTheta, obj2.Px, obj2.Py, obj2.Pz);
+		text_xy("Located Object2 at: ", 700.0, 250.0, 14);
+		text_xy(obj2.Px, 900, 250, 14);
+		text_xy(obj2.Py, 970.0, 250.0, 14);
+		text_xy(obj2.Pz, 1040.0, 250.0, 14);
+	}
+	else if (KEY(0x33))//KEY: 3
+	{
+		locateObject(ObjTheta, pers1.Px, pers1.Py, pers1.Pz);
+		text_xy("Located Object3 at: ", 700.0, 250.0, 14);
+		text_xy(pers1.Px, 900, 250, 14);
+		text_xy(pers1.Py, 970.0, 250.0, 14);
+		text_xy(pers1.Pz, 1040.0, 250.0, 14);
+	}
+
 
 	//Start of Simulation
 	dt = 0.00003;
 	for (int i = 0; i < 300; i++)
 	{
-		sim_step(dt, arm1.yaw, arm2.pitch, arm3.pitch);
-		obj1.sim_fall(dt);
-		obj2.sim_fall(dt);
+		sim_step(dt, arm1.yaw, arm2.pitch, arm3.pitch, ObjTheta);
+//		if (//fish not on top of truck)
+		obj1.sim_roam(dt);
+		obj2.sim_roam(dt);
+//		else
+//		obj1.sim_fall(dt);
+//		obj2.sim_fall(dt);
 		pers1.sim_fall(dt);
 	}
+
+//TO-DO: Fish on top of truck
 
 	resolveCollision(obj1, obj2);
 	resolveCollision(obj2, pers1);
 	resolveCollision(obj1, pers1);
 
 	//Point to object 1, object 2
-	dt2 = 0.002;
-/*	double objTheta[3 + 1] = { 0.0 };
+/*	dt2 = 0.002;
+	double objTheta[3 + 1] = { 0.0 };
 	if (KEY(0x31))
 	{
 		locateObject(objTheta, obj1.Px, obj1.Py, obj1.Pz);		//Finds the goal (Object)
@@ -243,7 +269,7 @@ void draw_3D_graphics()
 		locateObject(objTheta, obj2.Px, obj2.Py, obj2.Pz);
 		pointAtObject(dt2, objTheta, arm1.yaw, arm2.pitch, arm3.pitch);
 	}
-*/
+	*/
 //TO-DO:	Change locate object to velocity input
 
 	checkPickup(end_effector, obj1);

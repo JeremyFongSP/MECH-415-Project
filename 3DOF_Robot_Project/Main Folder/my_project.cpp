@@ -18,7 +18,7 @@ using namespace std;
 const double PI =	atan(1) * 4;
 const double g	=	9.81;
 double m[3 + 1] =	{ -1.0, 10.0, 10.0, 12.0 };			//Mass of arms
-double l[3 + 1] =	{ -1.0, 16.5, 16.5, 21.0 };			//Length of arms
+double l[3 + 1] =	{ -1.0, 16.5, 16.5, 25.0 };			//Length of arms
 ofstream fout_myproject("My_project_Debug.csv");
 
 //---------------------------------------------- End Global -----------------------------------------------------------
@@ -52,14 +52,29 @@ int Object::N;	//Initialize static N for object count
 Object::Object(double radius, mesh *Pm, double x, double y, double z, double pitch, double yaw, double roll) : Body(Pm, x, y, z, pitch, yaw, roll)
 {
 	this->radius = radius;
+	previous_z = z;
 	NumObj = ++N;	//Count number of objects on the field
 }
 
 void Object::sim_fall(double dt)
 {
 	if (Pz > 1e-4)	Pz -= g*dt;
+//	else Pz = 0.0;							//TO-DO:	object stays at 0 if arm moves lower
 //	checkGoal();							//TO-DO2:	if reaches goal, add 1 point
 }
+
+void Object::sim_roam(double dt)
+{
+	if (!is_grabbed)
+	{
+		Pz = 5 * sin(t) + previous_z;
+		t += dt;
+	}
+}
+
+//TO-DO:	Make fishes go around
+//TO-DO2:	Make fishes face where they're heading
+
 
 ObjectWorld::ObjectWorld(int N, mesh *Pm1, int M, mesh *Pm2)
 {
@@ -112,7 +127,7 @@ void ObjectWorld::draw()
 
 //--------------------------------------------------- Functions ------------------------------------------------------------
 
-void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
+void sim_step(double dt, double &yaw, double &pitch2, double &pitch3, double ObjTheta[3+1])
 {
 
 	int i;
@@ -137,7 +152,7 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 		init = 1;
 	}
 
-	calculate_inputs(xtemp,t,N,u);						// calculate u
+	calculate_inputs(xtemp,dt,N,u,ObjTheta);			// calculate u
 	calculate_Xd(xtemp,t,N,u,M,xd);						// calculate x-derivatives
 
 	for(i=1;i<=N;i++) xtemp[i] = xtemp[i] + xd[i]*dt;	// Euler step
@@ -150,12 +165,11 @@ void sim_step(double dt, double &yaw, double &pitch2, double &pitch3)
 	pitch3 =	xtemp[3] + xtemp[2];					// Pitch Second Arm Position
 }
 
-void calculate_inputs(const double X[], double t, int N, double U[])
+void calculate_inputs(const double X[], double dt, int N, double U[], double ObjTheta[3+1])
 {
 	double F[3 + 1] = { 0.0 };							// force matrix
 	double fs = 2e-4;									// force step
 	double friction_coef = 1e-4;						// force friction depends on current velocity
-	static double ObjTheta[3 + 1] = { 0.0 };
 
 	// unpack
 	double theta1 = X[1];
@@ -165,13 +179,16 @@ void calculate_inputs(const double X[], double t, int N, double U[])
 //	double vheta2 = X[5];
 //	double vheta3 = X[6];
 
-	//Keystrokes: W - A - S - D - Q - E
+	//KEY: W - A - S - D - Q - E
 	if (KEY(0x44))	F[1] = fs;
 	if (KEY(0x41))	F[1] = -fs;
 	if (KEY(0x53))	F[2] = fs;
 	if (KEY(0x57))	F[2] = -fs;
 	if (KEY(0x51))	F[3] = fs;
 	if (KEY(0x45))	F[3] = -fs;
+
+	//KEY: 1 - 2 - 3
+	if (KEY(0x31) || KEY(0x32) || KEY(0x33)) pointAtObject(dt, X, ObjTheta, F[1], F[2], F[3]);
 
 
 //TO-DO: Add a stop + bounce back if arm goes too far (kind of like collision)
@@ -348,18 +365,17 @@ void ComputeInvertedMatrix(double Ma[3 + 1][3 + 1], double det, double Minv[3 + 
 void locateObject(double objThetas[3+1], double x, double y, double z)
 {
 	//Inverse Kinematics
-	double ztemp = z + 3;
 	double r;
 	double D;
 	objThetas[1] =	atan2(y, x);
 	r			 =	sqrt(x*x + y*y);
-	D			 =	sqrt((ztemp - l[1])*(z - l[1]) + r * r);
-	objThetas[3] =	PI - acos((D * D - l[3] * l[3] - l[2] * l[2]) / -(2 * l[2] * l[3]));
-	objThetas[2] =	atan2(-(ztemp - l[1]), r) - atan2(l[3] * sin(objThetas[3]), l[2] + l[3] * cos(objThetas[3]));
+	D			 =	sqrt((z - l[1])*(z - l[1]) + r * r);
+	objThetas[3] = PI - acos((D * D - l[3] * l[3] - l[2] * l[2]) / -(2 * l[2] * l[3]));
+	objThetas[2] =	atan2(-(z - l[1]), r) - atan2(l[3] * sin(objThetas[3]), l[2] + l[3] * cos(objThetas[3]));
 
-//TO-DO: Make classes so that we can just pass objects instead of inputs
+//This should be correct
 }
-
+/* Original
 void pointAtObject(double dt, double objTheta[3 + 1], double & yaw, double & pitch2, double & pitch3)
 {
 
@@ -374,9 +390,30 @@ void pointAtObject(double dt, double objTheta[3 + 1], double & yaw, double & pit
 		pitch3 =	objTheta[3]+objTheta[2];
 	}
 
+	yaw = objTheta[1];
+	pitch2 = objTheta[2];
+	pitch3 = objTheta[3] + objTheta[2];
+
 //TO-DO:	Make end effector point directly at object 
 //			if we rotate the arm a lot in one direction
 //			it'll undo the rotation before pointing at the object
+}
+*/
+void pointAtObject(double dt, const double X[3+1], double objTheta[3 + 1], double & yaw, double & pitch2, double & pitch3)
+{
+	double fs = 2e-4;
+	if ((objTheta[1] - X[1]) > 0.01)							yaw = fs;
+	if ((objTheta[1] - X[1]) < -0.01)							yaw = -fs;
+	if ((objTheta[2] - X[2]) > 0.01)							pitch2 = fs;
+	if ((objTheta[2] - X[2]) < -0.01)							pitch2 = -fs;
+	if (((objTheta[3] + objTheta[2]) - (X[3]+X[2])) > 0.01)		pitch3 = fs;
+	if (((objTheta[3] + objTheta[2]) - (X[3]+X[2])) < -0.01)	pitch3 = -fs;
+
+	//TO-DO:	Make end effector point directly at object 
+	//			if we rotate the arm a lot in one direction
+	//			it'll undo the rotation before pointing at the object
+
+	//TO-DO2:	Make it go negative based on if (objtheta - x) is positive or negative
 }
 
 void checkPickup(Body end_effector, Object & obj)
@@ -396,6 +433,7 @@ void checkPickup(Body end_effector, Object & obj)
 		if (KEY(0x47))	{
 			grabbing = !grabbing;		//Toggle grab/not grab
 			obj.is_grabbed = !obj.is_grabbed;
+			if (!obj.is_grabbed)	obj.previous_z = obj.Pz;
 			Sleep(200);
 		}
 
@@ -415,7 +453,7 @@ void resolveCollision(Object & one, Object & two)
 	bool in_rangeX = false;
 	bool in_rangeY = false;
 	bool in_rangeZ = false;
-	long int s = -3;
+	static long int s = -3;
 	double r = 1;
 
 	if (one.Px - (one.radius + r) < two.Px + (two.radius + r) && one.Px + (one.radius + r) > two.Px - (two.radius + r)) in_rangeX = true;
@@ -429,11 +467,13 @@ void resolveCollision(Object & one, Object & two)
 		{
 			two.Px += ((ran(s) * 4.0) - 2.0);
 			two.Py += ((ran(s) * 4.0) - 2.0);
+			s--;
 		}
 		else if (two.is_grabbed)
 		{
 			one.Px += ((ran(s) * 4.0) - 2.0);
 			one.Py += ((ran(s) * 4.0) - 2.0);
+			s--;
 		}
 		else
 		{
@@ -441,9 +481,8 @@ void resolveCollision(Object & one, Object & two)
 			two.Py += ((ran(s) * 4.0) - 2.0);
 			one.Px += ((ran(s) * 4.0) - 2.0);
 			one.Py += ((ran(s) * 4.0) - 2.0);
+			s--;
 		}
-		//TO-DO:	Weird random (is it actually random?)
-
 	}
 }
 //---------------------------------------------- End Functions -----------------------------------------------------------
