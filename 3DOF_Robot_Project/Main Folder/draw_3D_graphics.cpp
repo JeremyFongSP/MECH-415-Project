@@ -149,24 +149,38 @@ void draw_3D_graphics()
 	//Static on-text screen
 	text_xy("Place the fish inside the cage!", 10.0, 10.0, 20);
 	text_xy("Commands: \nW-A-S-D-Q-E = Move Arms\nV = Toggle POV, G = Grab, R = Reset", 10.0, 1000.0, 10);
-	text_xy("Bonus hint: You are an object!\nPress 1, 2 or 3 to auto-target", 1650.0, 1000.0, 10);
+	text_xy("Bonus hint: You are an object!\nHold 1, 2 or 3 to auto-target", 1650.0, 1000.0, 10);
 	text_xy("Fish =", 10.0, 90.0, 20);
 	text_xy(score, 150.0, 90.0, 20);
 	text_xy("Money = ", 10.0, 50.0, 20);
 	text_xy(money, 150.0, 50.0, 20);
-	text_xy("Press SPACEBAR to sell fish in cage!", 1400, 10.0, 20);
+	if (score > 0)	text_xy("Press SPACEBAR to sell fish in cage!", 1400, 10.0, 20);
 	
 	//----------------------------------------------------------Keyboard Inputs--------------------------------------------------------
 	if (KEY(VK_SPACE))											//KEY: SPACE
 	{
 		money += score * 5;
 		score = 0;
-		if (fishes.pf[1]->in_cage) fishes.pf[1]->delete_obj();
-		if (fishes.pf[2]->in_cage) fishes.pf[2]->delete_obj();
-		if (pers1.in_cage) pers1.delete_obj();
+		if (fishes.pf[1]->in_cage)
+		{
+			fishes.pf[1]->delete_obj();
+			fishes.pf[1]->is_grabbed = false;
+		}
+		if (fishes.pf[2]->in_cage)
+		{
+			fishes.pf[2]->delete_obj();
+			fishes.pf[2]->is_grabbed = false;
+		}
+		if (pers1.in_cage) 
+		{
+			pers1.delete_obj();
+			pers1.is_grabbed = false;
+		}
+
 	}
 	
-	if (KEY(0x52))
+	//Reset
+	if (KEY(0x52))												//KEY: R
 	{
 		init = 0;
 	}
@@ -191,7 +205,7 @@ void draw_3D_graphics()
 	//First Person View
 	else
 	{
-		double eye_point[3 + 1] = { -1.0, pers1.Px, pers1.Py, pers1.Pz + 8.0 };
+		double eye_point[3 + 1] = { -1.0, pers1.Px, pers1.Py, pers1.Pz + 9.0 };
 		double lookat_point[3 + 1] = { -1.0, end_effector.Px / 2, end_effector.Py / 2, end_effector.Pz / 2 };
 		double up_dir[3 + 1] = { -1.0, 0.0, 0.0, 1.0 };				
 		double fov = PI/2;										
