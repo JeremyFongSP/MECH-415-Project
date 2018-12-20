@@ -456,7 +456,7 @@ void locateObject(double objThetas[3+1], Object obj)
 	objThetas[3] = PI - acos((D * D - l[3] * l[3] - l[2] * l[2]) / -(2 * l[2] * l[3]));
 	objThetas[2] = atan2(-(obj.Pz - l[1]), r) - atan2(l[3] * sin(objThetas[3]), l[2] + l[3] * cos(objThetas[3]));
 
-	text_xy("...ZONING ON TARGET...", 850, 200, 20);
+	text_xy(":::ZONING ON TARGET:::", 850, 200, 20);
 	text_xy("Target Location: ", 800.0, 250.0, 14);
 	text_xy((int)obj.Px, 1000, 250, 14);
 	text_xy((int)obj.Py, 1070.0, 250.0, 14);

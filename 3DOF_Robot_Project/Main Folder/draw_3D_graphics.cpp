@@ -153,16 +153,12 @@ void draw_3D_graphics()
 
 	//STATIC ON-SCREEN TEXT
 	static double objects_in_goal = 0.0;
-	text_xy("Place the objects inside the truck!", 10.0, 10.0, 20);
-	text_xy("Commands: ", 10.0, 970.0, 10);
-	text_xy("W-A-S-D-Q-E = Move Arms", 10.0, 1000, 10);
-	text_xy("V = Toggle POV, G = Grab, R = Reset", 10.0, 1030, 10);
-	text_xy("Goal = 3", 10.0, 50.0, 20);
-	text_xy("Current =", 10.0, 90.0, 20);
+	text_xy("Place the objects inside the truck!\nGoal = 3", 10.0, 10.0, 20);
+	text_xy("Current =", 10.0, 70.0, 20);
+	text_xy(objects_in_goal, 135.0, 70.0, 20);
+	text_xy("Commands: \nW-A-S-D-Q-E = Move Arms\nV = Toggle POV, G = Grab, R = Reset", 10.0, 1000.0, 10);
 //	text_xy("play with arroy keys and press A with arroy to move the grabber arm", 10.0, 90.0, 20);
-	text_xy("Bonus hint: You are an object!", 1650.0, 1000.0, 10);
-	text_xy("Press 1 or 2 to auto locate on fishes", 1650.0, 1030.0, 10);
-	text_xy(objects_in_goal, 135.0, 90.0, 20);
+	text_xy("Bonus hint: You are an object!\nPress 1 or 2 to auto-target", 1650.0, 1000.0, 10);
 
 	//RESET
 	if (KEY(0x52))	//KEY: R
@@ -223,14 +219,14 @@ void draw_3D_graphics()
 	else if (KEY(0x32))		//KEY: 2
 	{
 		locateObject(ObjTheta, *fishes.pf[2]);
-		text_xy(end_effector.get_distance(*fishes.pf[2]), 900.0, 300.0, 14);
-		if (end_effector.get_distance(*fishes.pf[1]) < 3.0)		text_xy("(Press G!)", 1100.0, 300.0, 14);
+		text_xy(end_effector.get_distance(*fishes.pf[2]), 1000.0, 300.0, 14);
+		if (end_effector.get_distance(*fishes.pf[2]) < 3.0)		text_xy("(Press G!)", 1100.0, 300.0, 14);
 	}
 	else if (KEY(0x33))		//KEY: 3
 	{
 		locateObject(ObjTheta, pers1);
-		text_xy(end_effector.get_distance(pers1), 900.0, 300.0, 14);
-		if (end_effector.get_distance(*fishes.pf[1]) < 3.0)		text_xy("(Press G!)", 1100.0, 300.0, 14);
+		text_xy(end_effector.get_distance(pers1), 1000.0, 300.0, 14);
+		if (end_effector.get_distance(pers1) < 3.0)		text_xy("(Press G!)", 1100.0, 300.0, 14);
 	}
 
 	//Start of Simulation
