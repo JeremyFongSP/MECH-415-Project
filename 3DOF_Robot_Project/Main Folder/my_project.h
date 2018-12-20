@@ -75,3 +75,4 @@ void locateObject(double objThetas[3 + 1], double x, double y, double z);
 void pointAtObject(double dt, double objTheta[3 + 1], double & yaw, double & pitch2, double & pitch3);
 void checkPickup(Body End_Effector, Object & obj);
 void resolveCollision(Object & one, Object & two);
+void fish_catched(Body one, Object &two, int &score);

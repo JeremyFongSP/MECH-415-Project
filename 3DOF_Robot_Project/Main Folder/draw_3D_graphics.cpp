@@ -63,14 +63,15 @@ void draw_3D_graphics()
 	static mesh m3("arm3.x");
 	static mesh objm1("fish1.x");
 	static mesh persm1("car.x");
-	static mesh end_em("");
-	static mesh goalm("");
-	goalm.Scale = 1.0;
+	static mesh end_em("cage.x");
+	static mesh goalm("cage.x");
+	goalm.Scale = 5.0;
 	goalm.Roll_0 = PI / 2;
 	end_em.Roll_0 = PI / 2;				//Offset
 	end_em.X_0 = -5.5;					//Offset
 	persm1.Pitch_0 = 5* PI/ 2;
-
+	static int score = 0;
+	static int money = 0;
 
 	//Initialization for arm and object objects
 	static Arm arm1(16.5, 10.0, &m1, 0.0, 0.0, 0.0, 0.0, 0.0, PI / 2);				//You can keep adding max of 8 mesh files.
@@ -84,13 +85,13 @@ void draw_3D_graphics()
 //	static Body bg(&bgm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	//static Body end_effector(&end_em, 0.0, 0.0, 0.0, 0.0, PI, PI/2);
 
-	//static Object obj1(3.0, &objm1, 30.0, -20.0, 30.0, 0.0, 0.0, PI / 2);
-	//static Object obj2(3.0, &objm1, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
-	static fish f(2);
+	static Object obj1(3.0, &objm1, 30.0, -20.0, 30.0, 0.0, 0.0, PI / 2);
+	static Object obj2(3.0, &objm1, -20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
+	//static fish f(2);
 	static Object pers1(3.0, &persm1, 20.0, 20.0, 0.0, 0.0, 0.0, PI / 2);
 //	static Body bg(&bgm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 	static Body end_effector(&end_em, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-	static Body goal_truck(&goalm, -40.0, -20.0, 0.0, 0.0, 0.0, 0.0);
+	static Body cage(&goalm, -10.0, 20.0, -10.0, 0.0, 0.0, 0.0);
 
 //	static Body floor(&floorm, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
 
@@ -149,16 +150,33 @@ void draw_3D_graphics()
 		init = 1;
 	}
 
+	fish_catched(cage, obj1, score);
+	fish_catched(cage, obj2, score);
+	fish_catched(cage, pers1, score);
+
+	if (score > 0)
+	{
+		text_xy("Press S to sell fish!!!", 1550, 10.0, 20);
+		if (KEY(0x53))
+		{
+			money += score * 5;
+			score = 0;
+		}
+	}
+
 	//On-Screen text
 	static double objects_in_goal = 0.0;
-	text_xy("Place the objects inside the truck!", 10.0, 10.0, 20);
+	text_xy("Place the fishes inside the cage!", 10.0, 10.0, 20);
 	text_xy("V = switch POV, G = Grab, R = Reset Objects", 10.0, 50.0, 20);
 	text_xy("play with arroy keys and press A with arroy to move the grabber arm", 10.0, 90.0, 20);
 	text_xy("Goal = 3", 10.0, 130.0, 20);
-	text_xy("Current =", 10.0, 170.0, 20);
+	text_xy("fish =", 10.0, 170.0, 20);
+	text_xy(score, 135.0, 170.0, 20);
+	text_xy("Money = ", 1550.0, 50.0, 20);
+	text_xy(money, 1590.0, 50.0, 20);
 	text_xy("Hint: You are an object!", 1650.0, 1000.0, 10);
 	text_xy("Press 1 or 2 to auto zoom on objects", 1650.0, 1030.0, 10);
-	text_xy(objects_in_goal, 135.0, 130.0, 20);
+	//text_xy(objects_in_goal, 135.0, 130.0, 20);
 
 //TO-DO:	Reset
 
@@ -270,8 +288,8 @@ void draw_3D_graphics()
 	arm1.draw();
 	arm2.draw();
 	arm3.draw();
-	end_effector.draw();
-	goal_truck.draw();
+	//end_effector.draw();
+	cage.draw();
 
 	//Draw Background
 //	bg.draw();
@@ -281,7 +299,7 @@ void draw_3D_graphics()
 	//obj1.draw();
 	//obj2.draw();
 	//f.input();
-	f.draw();
+	//f.draw();
 //	w1.draw();
 	pers1.draw();
 }

@@ -515,4 +515,24 @@ void resolveCollision(Object & one, Object & two)
 
 	}
 }
+
+void fish_catched(Body one, Object &two, int &score)
+{
+	bool in_rangeX = false;
+	bool in_rangeY = false;
+	bool in_rangeZ = false;
+	double scale = 5.0;
+	double cage_lenght = 2 * scale;
+	double cage_height = 5 * scale;
+
+	if (((one.Px - cage_lenght)  < (two.Px - two.radius)) && ((one.Px + cage_lenght) > (two.Px + two.radius))) in_rangeX = true;
+	if (((one.Py - cage_lenght)  < (two.Py - two.radius)) && ((one.Py + cage_lenght) > (two.Py + two.radius))) in_rangeY = true;
+	if (((one.Pz)  < (two.Pz - two.radius)) && ((one.Pz + cage_height) > (two.Pz + two.radius))) in_rangeZ = true;
+
+	if (in_rangeX && in_rangeY && in_rangeZ)
+	{
+		score++;
+		two.radius = 10.0;
+	}
+}
 // ----------------------------------- End Functions -----------------------------------------------------------
